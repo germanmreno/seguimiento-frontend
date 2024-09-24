@@ -28,59 +28,8 @@ import { Calendar } from "./components/ui/calendar"
 import { CalendarIcon } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
 import { Badge } from "./components/ui/badge"
-
-const receptionOptions = [
-  { id: 'MESA_DE_PARTES', label: 'Mesa de Partes' },
-  { id: 'CORREO', label: 'Correo Electrónico' },
-  { id: 'PRE_VP', label: 'PRE - VP' },
-]
-
-const gerencyOptions = [
-  { id: 'ADMIN', label: 'Administración' },
-  { id: 'ATENCIONCIUD', label: 'Atención Ciudadana' },
-  { id: 'AUDITORIA', label: 'Auditoría Interna' },
-  { id: 'CARBOSUROESTE', label: 'Carbosuroeste' },
-  { id: 'CATASTRO', label: 'Catastro Minero' },
-  { id: 'CHOCO', label: 'Planta de Chocó' },
-  { id: 'COMERCIALIZACION', label: 'Comercialización' },
-  { id: 'COMUNICACIONES', label: 'Comunicaciones' },
-  { id: 'CONSULTORIA', label: 'Consultoría Jurídica' },
-  { id: 'CUMPLIMIENTO', label: 'Oficial de Cumplimiento' },
-  { id: 'ECOSOCIALISMO', label: 'Ecosocialismo' },
-  { id: 'FOSFASUROESTE', label: 'Fosfasuroeste' },
-  { id: 'GUIAS', label: 'Guías' },
-  { id: 'INSUMOS', label: 'Coordinación de Insumos' },
-  { id: 'NIQUEL', label: 'Planta Lomas de Niquel' },
-  { id: 'PLANIFICACION', label: 'Planificación' },
-  { id: 'PRODUCCION', label: 'Producción' },
-  { id: 'PROYECTO', label: 'Proyecto Minero' },
-  { id: 'REGIONES', label: 'Gerencia de Regiones' },
-  { id: 'RRHH', label: 'Gestión Humana' },
-  { id: 'SEGUIMIENTO', label: 'Seguimiento y Control' },
-  { id: 'SEGURIDAD', label: 'Seguridad' },
-  { id: 'TECNOLOGIA', label: 'Tecnología' },
-]
-
-const instructionOptions = [
-  { id: 'PROCESAR', label: 'Procesar' },
-  { id: 'CHEQUEAR', label: 'Chequear e Informar' },
-  { id: 'COORDINAR', label: 'Coordinar e Informar' },
-  { id: 'VERIFICAR', label: 'Verificar e Informar' },
-  { id: 'EVALUAR', label: 'Evaluar y Recomendar' },
-  { id: 'PREPARAR', label: 'Preparar y presentar respuesta' },
-  { id: 'RESOLVER', label: 'Resolver e Informar' },
-  {
-    id: 'SEGUIR', label: 'Seguimiento'
-  },
-  { id: 'COORDINAREU', label: 'Coordinar Reunión' },
-  { id: 'APOYAR', label: 'Apoyar' },
-  { id: 'DIFUNDIR', label: 'Difundir' },
-  { id: 'PRESENTE', label: 'Tener presente' },
-  { id: 'ESPERAR', label: 'Esperar' },
-  { id: 'ARCHIVAR', label: 'Archivar' },
-  { id: 'Other', label: 'OTRA' },
-]
-
+import { RadioGroup, RadioGroupItem } from "./components/ui/radio-group"
+import { attachedOptions, gerencyOptions, instructionOptions, receptionOptions, responseOptions, urgencyOptions } from "./options/formOptions"
 
 const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
 const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'))
@@ -288,18 +237,20 @@ export const CreateForum = () => {
                   </div>
                   <div className="space-y-4 col-span-full">
                     <Label className="primary-text">RECIBIDO A TRAVÉS DE</Label>
-                    <div className="flex flex-col gap-4">
-                      {receptionOptions.map((option) => (
-                        <div key={option.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={option.id}
-                            checked={formData.selectedOptions.includes(option.id)}
-                            onCheckedChange={() => handleCheckboxChange(option.id)}
-                          />
-                          <Label htmlFor={option.id} className="text-xs">{option.label.toUpperCase()}</Label>
-                        </div>
-                      ))}
-                    </div>
+                    <RadioGroup defaultValue="">
+                      <div className="flex flex-col gap-4">
+                        {receptionOptions.map((option) => (
+                          <div className="flex items-center space-x-2" key={option.id}>
+                            <RadioGroupItem value={option.id} id={option.id} />
+                            <Label htmlFor={option.id}>{option.label.toUpperCase()}</Label>
+                          </div>
+                        ))}
+
+                      </div>
+                    </RadioGroup>
+                    <FormDescription>
+                      Seleccione el medio a través del cuál recibió el oficio.
+                    </FormDescription>
                   </div>
                   <div className="space-y-4 col-span-full">
                     <Label className="text-lg primary-text">GERENCIA(S) RESPONSABLE(S)</Label>
@@ -315,23 +266,80 @@ export const CreateForum = () => {
                         </div>
                       ))}
                     </div>
+                    <FormDescription>
+                      Seleccione las gerencias relacionadas al asunto del oficio.
+                    </FormDescription>
                   </div>
                   <div className="space-y-4 col-span-full">
                     <Label className="text-lg primary-text">INSTRUCCIÓN PRE - VP</Label>
-                    <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {instructionOptions.map((option) => (
-                        <div key={option.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={option.id}
-                            checked={formData.selectedOptions.includes(option.id)}
-                            onCheckedChange={() => handleCheckboxChange(option.id)}
-                          />
-                          <Label htmlFor={option.id} className="text-xs">{option.label.toUpperCase()}</Label>
-                        </div>
-                      ))}
-                    </div>
+                    <RadioGroup defaultValue="">
+                      <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {instructionOptions.map((option) => (
+                          <div className="flex items-center space-x-2" key={option.id}>
+                            <RadioGroupItem value={option.id} id={option.id} />
+                            <Label htmlFor={option.id}>{option.label.toUpperCase()}</Label>
+                          </div>
+
+                        ))}
+                      </div>
+                    </RadioGroup>
+                    <FormDescription>
+                      Seleccione la instrucción emanada desde Presidencia o Vicepresidencia.
+                    </FormDescription>
+                  </div>
+                  <div className="space-y-4 col-span-full">
+                    <Label className="text- primary-text">¿REQUIERE RESPUESTA?</Label>
+                    <RadioGroup defaultValue="">
+                      <div className="flex justify-center gap-5">
+                        {responseOptions.map((option) => (
+                          <div className="flex items-center space-x-2" key={option.id}>
+                            <RadioGroupItem value={option.id} id={option.id} />
+                            <Label htmlFor={option.id} className="text-xl">{option.label.toUpperCase()}</Label>
+                          </div>
+
+                        ))}
+                      </div>
+                    </RadioGroup>
+                    <FormDescription>
+                      Indique si el oficio requiere una respuesta por parte de la Corporación Venezolana de Minería, S.A.
+                    </FormDescription>
+                  </div>
+                  <div className="space-y-4 col-span-full">
+                    <Label className="text- primary-text">NIVEL DE URGENCIA</Label>
+                    <RadioGroup defaultValue="NORMAL">
+                      <div className="flex justify-center gap-5">
+                        {urgencyOptions.map((option) => (
+                          <div className="flex items-center m-auto space-x-2" key={option.id}>
+                            <RadioGroupItem value={option.id} id={option.id} />
+                            <Label htmlFor={option.id}><Badge variant={option.variant} className="text-sm">{option.label.toUpperCase()}</Badge></Label>
+                          </div>
+                        ))}
+                      </div>
+                    </RadioGroup>
+                    <FormDescription>
+                      Indique el nivel de urgencia con el que deberá ser atendido el contenido del oficio.
+                    </FormDescription>
                   </div>
                 </div>
+                <div className="space-y-4 col-span-full">
+                  <Label className="text-lg primary-text">ANEXO(S)</Label>
+                  <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {attachedOptions.map((option) => (
+                      <div key={option.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={option.id}
+                          checked={formData.selectedOptions.includes(option.id)}
+                          onCheckedChange={() => handleCheckboxChange(option.id)}
+                        />
+                        <Label htmlFor={option.id} className="text-xs">{option.label.toUpperCase()}</Label>
+                      </div>
+                    ))}
+                  </div>
+                  <FormDescription>
+                    Indique si el oficio trajo consigo anexos añadidos o no.
+                  </FormDescription>
+                </div>
+
                 <Button type="submit" className="w-full">Submit</Button>
 
               </form>
