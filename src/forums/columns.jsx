@@ -17,9 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
-
-
-const myCustomFilterFn = (row, filterValue) => {
+const myCustomFilterFn = (row, columnId, filterValue) => {
   const lowerFilterValue = filterValue.toLowerCase();
   const filterParts = lowerFilterValue.split(' ');
 
