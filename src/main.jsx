@@ -19,15 +19,15 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/createforum",
-    element: (
-      <CreateForum />
-    ),
-  },
-  {
     path: "/memos",
     element: (
       <MemoTablePage />
+    )
+  },
+  {
+    path: "/register-memo",
+    element: (
+      <CreateForum />
     )
   }
 ]);

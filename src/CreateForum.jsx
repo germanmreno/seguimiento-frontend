@@ -19,17 +19,28 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Popover, PopoverContent, PopoverTrigger } from "./components/ui/popover"
 import { Calendar } from "./components/ui/calendar"
-
-import { CalendarIcon } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
 import { Badge } from "./components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "./components/ui/radio-group"
 import { attachedOptions, gerencyOptions, instructionOptions, receptionOptions, responseOptions, urgencyOptions } from "./options/formOptions"
+
+import ImageUpload from "@/components/custom/image-upload";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+import { CalendarIcon, MoveRight } from "lucide-react"
 
 const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
 const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'))
@@ -89,7 +100,7 @@ export const CreateForum = () => {
       <div className="container mx-auto py-10 divide-y flex justify-center">
         <Card className="w-full max-w-4xl bg-white shadow-lg">
           <CardHeader className="bg-[#667f2a] rounded-t-lg">
-            <CardTitle className="text-sms text-left text-white primary-text">RECEPCIÓN DE OFICIOS</CardTitle>
+            <CardTitle className="text-sms text-left text-white primary-text">REGISTRO DE NUEVO OFICIO</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form} >
@@ -277,7 +288,7 @@ export const CreateForum = () => {
                         {instructionOptions.map((option) => (
                           <div className="flex items-center space-x-2" key={option.id}>
                             <RadioGroupItem value={option.id} id={option.id} />
-                            <Label htmlFor={option.id}>{option.label.toUpperCase()}</Label>
+                            <Label htmlFor={option.id} className="text-xs">{option.label.toUpperCase()}</Label>
                           </div>
 
                         ))}
@@ -339,9 +350,34 @@ export const CreateForum = () => {
                     Indique si el oficio trajo consigo anexos añadidos o no.
                   </FormDescription>
                 </div>
-
-                <Button type="submit" className="w-full">Submit</Button>
-
+                <div className="space-y-4 col-span-full">
+                  <Label className="text-lg primary-text">AÑADIR ANEXO</Label>
+                  <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="rounded-full shadow" variant="outline">
+                          Adjuntar archivos
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle className="text-center">
+                            Subir archivos
+                          </DialogTitle>
+                          <DialogDescription className="text-center">
+                            Sólo suba los archivos necesarios.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <ImageUpload />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+                <div className="space-y-4 flex justify-center">
+                  <Button type="submit" className="w-[400px] h-[45px] bg-primary-green primary-text text-lg">Enviar</Button>
+                </div>
               </form>
             </Form>
           </CardContent>

@@ -21,8 +21,11 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useNavigate } from "react-router-dom"
 
 export function DataTable({ columns = [], data }) {
+  const navigate = useNavigate()
+
   const [sorting, setSorting] = useState([])
   const [columnFilters, setColumnFilters] = useState([])
   const [currentStatus, setCurrentStatus] = useState('all');
@@ -87,7 +90,10 @@ export function DataTable({ columns = [], data }) {
           </Select>
         </div>
 
-        <div> <Button variant="outline" className="flex flex-row items-center justify-center h-30px p-4 py-6 rounded-full bg-primary-green transition-colors hover:bg-emerald-600/80">
+        <div> <Button variant="outline"
+          className="flex flex-row items-center justify-center h-30px p-4 py-6 rounded-full bg-primary-green transition-colors hover:bg-emerald-600/80"
+          onClick={() => navigate("/register-memo")}
+        >
           <img src="/new_memo.png" alt="registro" width="40px" />
           <span className="primary-text text-sm ml-2 text-slate-100">Registrar <br />nuevo oficio</span>
         </Button></div>

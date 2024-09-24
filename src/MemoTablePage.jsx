@@ -223,7 +223,7 @@ export default function MemoTablePage() {
 
       <div className="container mx-auto py-10 grid grid-rows-1 divide-y">
         <div className="bg-[#667f2a] text-white rounded-t-lg w-full h-12 flex items-center justify-start p-0 border-solid border-gray border-2 pl-4" >
-          <h1 className="primary-text p-0 m-0">Registro de Oficios de la Corporación Venezolana de Minería</h1>
+          <h1 className="primary-text p-0 m-0">LISTA DE OFICIOS DE LA CORPORACIÓN VENEZOLANA DE MINERÍA</h1>
         </div>
         <DataTable columns={columns} data={data} />
       </div>
