@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom"
-import { Button } from "./components/ui/button"
-import { ImageCarousel } from "./ImageCarousel"
-import { Layout } from "./layout/layout"
+import { Button } from "../components/ui/button"
+import { ImageCarousel } from "../components/custom"
+import { Layout } from "../layout/layout"
 
 export const MainPage = () => {
 

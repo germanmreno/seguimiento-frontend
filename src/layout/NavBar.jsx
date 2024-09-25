@@ -1,13 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "./components/ui/button";
+import { Button } from "../components/ui/button";
 
 export const NavBar = () => {
   const navigate = useNavigate()
-
-  //create a State
-
-
-
 
   return (
     <nav className="navbar navbar-light navbar-gradient m-0 min-w-[400px] lg:w-[100%] h-auto xl:h-[125px] p-2 flex justify-center border-b-4 border-gray-950 ">

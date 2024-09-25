@@ -10,10 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Label } from "./components/ui/label"
+import { Label } from "../components/ui/label"
 import { useNavigate } from "react-router-dom";
 
-export default function LoginPage() {
+export const LoginPage = () => {
   const navigate = useNavigate();
 
   return (

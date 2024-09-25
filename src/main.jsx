@@ -2,10 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
-import { MainPage } from './MainPage.jsx'
-import LoginPage from './LoginPage.jsx'
-import { CreateForum } from './CreateForum'
-import MemoTablePage from './MemoTablePage'
+import { MainPage, LoginPage, RegisterMemoPage, MemoTablePage } from './pages'
 
 const router = createBrowserRouter([
   {
@@ -27,7 +24,7 @@ const router = createBrowserRouter([
   {
     path: "/register-memo",
     element: (
-      <CreateForum />
+      <RegisterMemoPage />
     )
   }
 ]);

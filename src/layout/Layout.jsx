@@ -1,5 +1,5 @@
-import { Footer } from "@/Footer"
-import { NavBar } from "@/NavBar"
+import { Footer } from "./Footer"
+import { NavBar } from "./NavBar"
 
 
 export const Layout = ({ children }) => {

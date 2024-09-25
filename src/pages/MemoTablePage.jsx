@@ -1,6 +1,6 @@
-import { columns } from "./forums/columns"
-import { DataTable } from "./forums/data-table"
-import { Layout } from "./layout/Layout"
+import { columns } from "../forums/columns"
+import { DataTable } from "../forums/data-table"
+import { Layout } from "../layout/Layout"
 
 const data = [
   {
@@ -215,7 +215,7 @@ const data = [
 // ...
 
 
-export default function MemoTablePage() {
+export const MemoTablePage = () => {
 
 
   return (
