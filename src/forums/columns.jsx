@@ -23,11 +23,20 @@ const myCustomFilterFn = (row, columnId, filterValue) => {
 
   let rowValues = Object.values(row.original).join(' ').toLowerCase();
 
+  // Include office names in the rowValues
+  if (row.original.offices && Array.isArray(row.original.offices)) {
+    const officeNames = row.original.offices.map(office => office.office.name.toLowerCase()).join(' ');
+    rowValues += ' ' + officeNames;
+  }
+
   // Replace "en revision" with "pending"
   const statusReplacements = {
     "en": "pending",
     "proceso": "pending",
-    "finalizado": "completed"
+    "finalizado": "completed",
+    "EN": "pending",
+    "PROCESO": "pending",
+    "FINALIZADO": "completed"
   };
 
   const modifiedFilterParts = filterParts.map(part => {
@@ -87,7 +96,7 @@ export const columns = [
     },
   },
   {
-    accessorKey: "asunto",
+    accessorKey: "name",
     filterFn: myCustomFilterFn,
     header: ({ column }) => {
       return (
@@ -102,7 +111,7 @@ export const columns = [
     },
   },
   {
-    accessorKey: "solicitante",
+    accessorKey: "applicant",
     header: ({ column }) => {
       return (
         <Button
@@ -116,21 +125,34 @@ export const columns = [
     },
   },
   {
-    accessorKey: "gerencia",
+    accessorKey: "offices",
     header: ({ column }) => {
       return (
-        <Button
-          className="bg-transparent hover:bg-green-700/80"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Gerencia
-          <SortedIcon isSorted={column.getIsSorted()} />
-        </Button>
+        <div className="text-center">
+          <Button
+            className="bg-transparent hover:bg-green-700/80"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Gerencia u Oficina
+            <SortedIcon isSorted={column.getIsSorted()} />
+          </Button>
+        </div>
+
+      );
+    },
+    cell: ({ row }) => {
+      const offices = row.original.offices;
+      return (
+        <div className="text-center max-w-[250px]">
+          {offices.map((office, index) => (
+            <div key={index}>{office.office.name}</div>
+          ))}
+        </div>
       );
     },
   },
   {
-    accessorKey: "date",
+    accessorKey: "reception_date",
     header: ({ column }) => {
       return (
         <Button
@@ -143,7 +165,8 @@ export const columns = [
       );
     },
     cell: ({ row }) => {
-      const date = row.getValue("date")
+      console.log(row)
+      const date = row.original.reception_date
 
       const formatDate = (date) => {
         const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
@@ -172,23 +195,53 @@ export const columns = [
       const status = row.getValue("status")
 
       const formatStatus = {
-        pending: "En proceso",
-        completed: "Finalizado"
+        PENDING: "En proceso",
+        COMPLETED: "Finalizado"
       }[status.toString()]
 
       const formatVariant = {
-        pending: "pending",
-        completed: "completed"
+        PENDING: "pending",
+        COMPLETED: "completed"
       }[status.toString()]
 
-      return (<div className="text-right">
+      return (<div className="text-center">
 
         <Badge variant={formatVariant}>	&#8226; {formatStatus}</Badge>
       </div>)
     },
   },
   {
-    accessorKey: "observacion",
+    accessorKey: "response_require",
+    header: ({ column }) => {
+      return (
+        <div className="text-center">
+          <Button
+            className="bg-transparent hover:bg-green-700/80"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            RESP.
+            <SortedIcon isSorted={column.getIsSorted()} />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const response = row.getValue("response_require")
+
+      const formatResponse = {
+        YES: "Sí",
+        NO: "No"
+      }[response.toString()]
+
+
+      return (
+        <div className="text-center">
+          <span>{formatResponse}</span>
+        </div>)
+    },
+  },
+  {
+    accessorKey: "observation",
     header: ({ column }) => {
       return (
         <div className="text-center">
@@ -203,11 +256,11 @@ export const columns = [
       );
     },
     cell: ({ row }) => {
-      const observacion = row.getValue("observacion")
+      const observacion = row.getValue("observation")
 
 
 
-      return (<div className="text-center">
+      return (<div className="text-center max-w-[130px]">
         {observacion}
       </div>)
     },
@@ -217,7 +270,6 @@ export const columns = [
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => {
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild className="flex justify-center">

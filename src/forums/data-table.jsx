@@ -23,8 +23,10 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useNavigate } from "react-router-dom"
 
-export function DataTable({ columns = [], data }) {
+export function DataTable({ columns = [], data = [] }) {
   const navigate = useNavigate()
+
+  console.log(data)
 
   const [sorting, setSorting] = useState([])
   const [columnFilters, setColumnFilters] = useState([])
@@ -38,8 +40,8 @@ export function DataTable({ columns = [], data }) {
     }
 
     const formatStatus = {
-      pending: "En proceso",
-      completed: "Finalizado"
+      PENDING: "En proceso",
+      COMPLETED: "Finalizado"
     }[status]
 
     setCurrentStatus(status);
@@ -67,11 +69,12 @@ export function DataTable({ columns = [], data }) {
         <div className="flex flex-row">
           <Input
             placeholder='Filtrar por...'
-            value={(table.getColumn('asunto')?.getFilterValue()) ?? ''}
+            value={(table.getColumn('name')?.getFilterValue()) ?? ''}
             onChange={(event) => {
               setCurrentStatus('all');
               table.getColumn('status')?.setFilterValue(undefined);
-              table.getColumn('asunto')?.setFilterValue(event.target.value);
+              table.getColumn('name')?.setFilterValue(event.target.value);
+
             }}
             className='max-w-sm bg-white '
           />
@@ -83,8 +86,8 @@ export function DataTable({ columns = [], data }) {
               <SelectGroup>
                 <SelectLabel>Status</SelectLabel>
                 <SelectItem value='all'>Todos</SelectItem>
-                <SelectItem value='pending'>En proceso</SelectItem>
-                <SelectItem value='completed'>Finalizado</SelectItem>
+                <SelectItem value='PENDING'>En proceso</SelectItem>
+                <SelectItem value='COMPLETED'>Finalizado</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -144,7 +147,7 @@ export function DataTable({ columns = [], data }) {
           </TableBody>
         </Table>
         <div className='space-x-2 py-4 px-2 flex justify-between items-center footer-foreground'>
-          <div className='flex-1 text-sm text-black'>
+          <div className='flex-1 text-sm text-white'>
             {table.getFilteredSelectedRowModel().rows.length} de{' '}
             {table.getFilteredRowModel().rows.length} fila(s) seleccionada(s).
           </div>

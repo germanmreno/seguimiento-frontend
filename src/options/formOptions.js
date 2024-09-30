@@ -5,29 +5,34 @@ export const receptionOptions = [
 ];
 
 export const gerencyOptions = [
-  { id: 'ADMIN', label: 'Administración' },
-  { id: 'ATENCIONCIUD', label: 'Atención Ciudadana' },
-  { id: 'AUDITORIA', label: 'Auditoría Interna' },
-  { id: 'CARBOSUROESTE', label: 'Carbosuroeste' },
-  { id: 'CATASTRO', label: 'Catastro Minero' },
-  { id: 'CHOCO', label: 'Planta de Chocó' },
-  { id: 'COMERCIALIZACION', label: 'Comercialización' },
-  { id: 'COMUNICACIONES', label: 'Comunicaciones' },
-  { id: 'CONSULTORIA', label: 'Consultoría Jurídica' },
-  { id: 'CUMPLIMIENTO', label: 'Oficial de Cumplimiento' },
-  { id: 'ECOSOCIALISMO', label: 'Ecosocialismo' },
-  { id: 'FOSFASUROESTE', label: 'Fosfasuroeste' },
-  { id: 'GUIAS', label: 'Guías' },
-  { id: 'INSUMOS', label: 'Coordinación de Insumos' },
-  { id: 'NIQUEL', label: 'Planta Lomas de Niquel' },
-  { id: 'PLANIFICACION', label: 'Planificación' },
-  { id: 'PRODUCCION', label: 'Producción' },
-  { id: 'PROYECTO', label: 'Proyecto Minero' },
-  { id: 'REGIONES', label: 'Gerencia de Regiones' },
-  { id: 'RRHH', label: 'Gestión Humana' },
-  { id: 'SEGUIMIENTO', label: 'Seguimiento y Control' },
-  { id: 'SEGURIDAD', label: 'Seguridad' },
-  { id: 'TECNOLOGIA', label: 'Tecnología' },
+  { id: '100', label: 'PRESIDENCIA' },
+  { id: '101', label: 'VICEPRESIDENCIA' },
+  { id: '102', label: 'OFICINA DE AUDITORÍA INTERNA' },
+  { id: '103', label: 'OFICINA DE CONSULTORÍA JURÍDICA' },
+  { id: '104', label: 'OFICINA DE PLANIFICACIÓN, PRESUPUESTO Y ORGANIZACIÓN' },
+  { id: '105', label: 'OFICINA DE GESTIÓN HUMANA' },
+  { id: '106', label: 'OFICINA DE PROYECTO DE DESARROLLO MINERO' },
+  { id: '107', label: 'OFICINA DE SEGURIDAD INTEGRAL' },
+  { id: '108', label: 'OFICINA DE ATENCIÓN AL CIUDADANO' },
+  { id: '109', label: 'OFICINA DE ADMINISTRACIÓN Y FINANZAS' },
+  { id: '110', label: 'OFICINA DE SEGUIMIENTO Y CONTROL' },
+  { id: '111', label: 'OFICINA DE GESTIÓN COMUNICACIONAL' },
+  { id: '112', label: 'OFICINA DE TECNOLOGÍA DE LA INFORMACIÓN' },
+  {
+    id: '113',
+    label: 'GERENCIA GENERAL DE SISTEMATIZACIÓN DEL CATASTRO MINERO',
+  },
+  { id: '114', label: 'GERENCIA GENERAL DE GESTIÓN ECOSOCIALISTA' },
+  {
+    id: '115',
+    label: 'GERENCIA GENERAL DE PRODUCCIÓN E INDUSTRIALIZACIÓN MINERA',
+  },
+  { id: '116', label: 'GERENCIA GENERAL DE COMERCIALIZACIÓN' },
+  { id: '117', label: 'GERENCIA GENERAL DE REGIONES' },
+  { id: '201', label: 'GERENCIA OPERACIONAL LOMA DE NÍQUEL' },
+  { id: '900', label: 'GERENCIA OPERACIONAL PLANTA DE CHOCÓ' },
+  { id: '901', label: 'GERENCIA OPERACIONAL CARBOSUROESTE' },
+  { id: '902', label: 'GERENCIA OPERACIONAL FOSFASUROESTE' },
 ];
 
 export const instructionOptions = [
@@ -52,15 +57,15 @@ export const instructionOptions = [
 ];
 
 export const responseOptions = [
-  { id: 'Y', label: 'Sí' },
-  { id: 'N', label: 'No' },
+  { id: 'YES', label: 'Sí' },
+  { id: 'NO', label: 'No' },
 ];
 
 export const urgencyOptions = [
   { id: 'NORMAL', label: 'Normal', variant: 'normal' },
-  { id: 'MEDIO', label: 'Medio', variant: 'medium' },
-  { id: 'PRIORIDAD', label: 'Prioridad', variant: 'urgency' },
-  { id: 'URGENTE', label: 'Urgente', variant: 'destructive' },
+  { id: 'MEDIUM', label: 'Medio', variant: 'medium' },
+  { id: 'PRIORITY', label: 'Prioridad', variant: 'urgency' },
+  { id: 'URGENT', label: 'Urgente', variant: 'destructive' },
 ];
 
 export const attachedOptions = [

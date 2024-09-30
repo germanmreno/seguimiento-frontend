@@ -3,7 +3,7 @@ import { format } from "date-fns"
 import { useForm, Controller } from "react-hook-form"
 import { Layout } from "../layout"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { date, z } from "zod"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -34,54 +34,104 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { CalendarIcon } from "lucide-react"
+import axios from "axios"
+import { useNavigate } from "react-router-dom"
 
 const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
 const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'))
 
 const formSchema = z.object({
-  receptionDate: z.date(),
-  receptionHour: z.string(),
-  receptionMinute: z.string(),
-  officeNumber: z.string().min(1, "Número de oficio es requerido"),
-  officeSubject: z.string().min(1, "Asunto de oficio es requerido"),
-  receptionMethod: z.string(),
-  responsibleManagements: z.array(z.string()),
-  instruction: z.string(),
-  requiresResponse: z.string(),
-  urgencyLevel: z.string(),
-  attachments: z.array(z.string()),
+  applicant: z.string().min(2, "El solicitante es requerido"),
+  attachment: z.array(z.string()).min(1, "Debe indicar si posee o no anexos"),
+  id: z.string().min(5, "El número de oficio es requerido"),
+  instruction: z.string().min(1, "Es requerido saber si necesita respuesta"),
+  name: z.string().min(2, "Asunto de oficio es requerido"),
+  observation: z.string().min(1, "Asunto de oficio es requerido"),
+  officeIds: z.array(z.string()).min(1, "Debe seleccionar al menos una oficina"),
+  reception_date: z.date({
+    errorMap: (issue, { defaultError }) => ({
+      message: issue.code === "invalid_date" ? "No ha seleccionado una fecha" : defaultError,
+    }),
+  }),
+  reception_method: z.string().min(1, "Método de recepción es requerido"),
+  receptionHour: z.string().optional(),
+  receptionMinute: z.string().optional(),
+  response_require: z.string().min(1, "Es requerido saber si necesita respuesta"),
+  status: z.string(),
+  urgency: z.string().min(1, "Es requerido saber si necesita respuesta"),
 })
 
 export const RegisterMemoPage = () => {
+
+  const navigate = useNavigate()
+
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      receptionDate: new Date(),
+      applicant: "",
+      attachment: [],
+      id: "",
+      instruction: "",
+      name: "",
+      observation: "",
+      officeIds: [],
+      reception_method: "",
       receptionHour: "",
       receptionMinute: "",
-      officeNumber: "",
-      officeSubject: "",
-      receptionMethod: "",
-      responsibleManagements: [],
-      instruction: "",
-      requiresResponse: "",
-      urgencyLevel: "NORMAL",
-      attachments: [],
+      response_require: "",
+      status: "PENDING",
+      urgency: "NORMAL"
     },
   })
 
-  const onSubmit = (data) => {
-    console.log(data)
+  const { control, handleSubmit, watch } = form;
+
+  const onSubmit = async (data) => {
+
+    const formattedTime = formatTime(data.receptionHour, data.receptionMinute);
+    // const formattedDate = format(data.reception_date, "dd/MM/yy")
+
+    delete data.receptionMinute;
+    delete data.receptionHour;
+
+    data.reception_hour = formattedTime;
+    // data.reception_date = formattedDate;
+
+    console.log('Form submitted:', { ...data });
+
+    try {
+      const response = await axios.post('http://localhost:3000/memos', data);
+      console.log('Memo created:', response.data);
+      navigate("/memos")
+
+    } catch (error) {
+      console.error('Error creating memo:', error);
+    }
     // Handle form submission logic here
+
   }
 
+  const formatTime = (hour, minute) => {
+    const hourInt = parseInt(hour, 10);
+    const minuteInt = parseInt(minute, 10);
+    const period = hourInt >= 12 ? 'PM' : 'AM';
+    const formattedHour = hourInt % 12 === 0 ? 12 : hourInt % 12;
+    const formattedMinute = minuteInt < 10 ? `0${minuteInt}` : minuteInt;
+    return `${formattedHour}:${formattedMinute} ${period}`;
+  };
+
+  // Watch the hour value to determine AM or PM
+  const selectedHour = watch('receptionHour');
+  const period = selectedHour && parseInt(selectedHour, 10) >= 12 ? 'PM' : 'AM';
+
   return (
+
     <Layout>
       <div className="container mx-auto py-10 divide-y flex justify-center">
         <Card className="w-full max-w-4xl bg-white shadow-lg">
-          <CardHeader className="bg-[#667f2a] rounded-t-lg">
+          <CardHeader className="bg-[#24387d] rounded-t-lg">
             <CardTitle className="text-sms text-left text-white primary-text">REGISTRO DE NUEVO OFICIO</CardTitle>
           </CardHeader>
           <CardContent>
@@ -91,10 +141,10 @@ export const RegisterMemoPage = () => {
                   <div className="space-y-2 mt-2">
                     <FormField
                       control={form.control}
-                      name="receptionDate"
+                      name="reception_date"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
-                          <FormLabel className="primary-text">FECHA DE RECEPCIÓN</FormLabel>
+                          <FormLabel className="primary-text">FECHA DE RECEPCIÓN <span className="text-red-500 text-xl">*</span></FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
                               <FormControl>
@@ -124,7 +174,7 @@ export const RegisterMemoPage = () => {
                       )}
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 mt-2">
                     <FormLabel className="primary-text">HORA DE RECEPCIÓN</FormLabel>
                     <div className="flex items-center space-x-1">
                       <Controller
@@ -164,7 +214,9 @@ export const RegisterMemoPage = () => {
                           </Select>
                         )}
                       />
-                      <Badge className="bg-gray-500">AM</Badge>
+                      <Badge variant="outline" className="text-lg">
+                        {period}
+                      </Badge>
                     </div>
                     <FormDescription>
                       Seleccione la hora en la que se recibió el oficio.
@@ -175,10 +227,10 @@ export const RegisterMemoPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
-                    name="officeNumber"
+                    name="id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="primary-text">NÚMERO DE OFICIO</FormLabel>
+                        <FormLabel className="primary-text">NÚMERO DE OFICIO <span className="text-red-500 text-xl">*</span></FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Número de oficio"
@@ -195,10 +247,10 @@ export const RegisterMemoPage = () => {
                   />
                   <FormField
                     control={form.control}
-                    name="officeSubject"
+                    name="name"
                     render={({ field }) => (
-                      <FormItem className="col-span-2">
-                        <FormLabel className="primary-text">ASUNTO DE OFICIO</FormLabel>
+                      <FormItem className="col-span-1">
+                        <FormLabel className="primary-text">ASUNTO DE OFICIO <span className="text-red-500 text-xl">*</span></FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Asunto de oficio"
@@ -213,14 +265,34 @@ export const RegisterMemoPage = () => {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="applicant"
+                    render={({ field }) => (
+                      <FormItem className="col-span-1">
+                        <FormLabel className="primary-text">SOLICITANTE <span className="text-red-500 text-xl">*</span></FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Solicitante del oficio"
+                            className="bg-gray-200"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Indique quién solicita el contenido del oficio o quién es el órgano que lo envía.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 <FormField
                   control={form.control}
-                  name="receptionMethod"
+                  name="reception_method"
                   render={({ field }) => (
                     <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="primary-text">RECIBIDO A TRAVÉS DE</FormLabel>
+                      <FormLabel className="primary-text">RECIBIDO A TRAVÉS DE <span className="text-red-500 text-xl">*</span></FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -245,25 +317,26 @@ export const RegisterMemoPage = () => {
 
                 <FormField
                   control={form.control}
-                  name="responsibleManagements"
+                  name="officeIds"
                   render={() => (
                     <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="text-lg primary-text">GERENCIA(S) RESPONSABLE(S)</FormLabel>
+                      <FormLabel className="text-lg primary-text">OFICINA(S) O GERENCIA(S) RESPONSABLE(S) <span className="text-red-500 text-xl">*</span></FormLabel>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {gerencyOptions.map((option) => (
                           <FormField
                             key={option.id}
                             control={form.control}
-                            name="responsibleManagements"
+                            name="officeIds"
                             render={({ field }) => {
                               return (
                                 <FormItem
                                   key={option.id}
-                                  className="flex flex-row items-start space-x-3 space-y-0"
+                                  className="flex flex-row items-start text-balance space-x-3 space-y-0"
                                 >
                                   <FormControl>
                                     <Checkbox
                                       checked={field.value?.includes(option.id)}
+                                      className="rounded-full"
                                       onCheckedChange={(checked) => {
                                         return checked
                                           ? field.onChange([...field.value, option.id])
@@ -297,7 +370,7 @@ export const RegisterMemoPage = () => {
                   name="instruction"
                   render={({ field }) => (
                     <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="text-lg primary-text">INSTRUCCIÓN PRE - VP</FormLabel>
+                      <FormLabel className="text-lg primary-text">INSTRUCCIÓN PRE - VP <span className="text-red-500 text-xl">*</span></FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -322,10 +395,10 @@ export const RegisterMemoPage = () => {
 
                 <FormField
                   control={form.control}
-                  name="requiresResponse"
+                  name="response_require"
                   render={({ field }) => (
                     <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="primary-text">¿REQUIERE RESPUESTA?</FormLabel>
+                      <FormLabel className="primary-text">¿REQUIERE RESPUESTA? <span className="text-red-500 text-xl">*</span></FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -350,10 +423,10 @@ export const RegisterMemoPage = () => {
 
                 <FormField
                   control={form.control}
-                  name="urgencyLevel"
+                  name="urgency"
                   render={({ field }) => (
                     <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="primary-text">NIVEL DE URGENCIA</FormLabel>
+                      <FormLabel className="primary-text">NIVEL DE URGENCIA <span className="text-red-500 text-xl">*</span></FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -380,17 +453,19 @@ export const RegisterMemoPage = () => {
 
                 <FormField
                   control={form.control}
-                  name="attachments"
+                  name="attachment"
                   render={() => (
                     <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="text-lg primary-text">ANEXO(S)</FormLabel>
+                      <FormLabel className="text-lg primary-text">ANEXO(S) <span className="text-red-500 text-xl">*</span></FormLabel>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {attachedOptions.map((option) => (
                           <FormField
                             key={option.id}
                             control={form.control}
-                            name="attachments"
+                            name="attachment"
                             render={({ field }) => {
+                              const isNoPosee = option.id.toUpperCase() === "NO";
+                              const isNoPoseeSelected = field.value?.includes("NO");
                               return (
                                 <FormItem
                                   key={option.id}
@@ -399,18 +474,24 @@ export const RegisterMemoPage = () => {
                                   <FormControl>
                                     <Checkbox
                                       checked={field.value?.includes(option.id)}
+                                      disabled={!isNoPosee && isNoPoseeSelected}
                                       onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([...field.value, option.id])
-                                          : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== option.id
-                                            )
-                                          )
+                                        if (isNoPosee) {
+                                          // If "NO POSEE" is checked, clear all other values
+                                          return checked
+                                            ? field.onChange([option.id])
+                                            : field.onChange([]);
+                                        } else {
+                                          // If any other option is checked, remove "NO POSEE" if it exists
+                                          const newValue = checked
+                                            ? [...field.value.filter((id) => id !== "NO"), option.id]
+                                            : field.value.filter((value) => value !== option.id);
+                                          return field.onChange(newValue);
+                                        }
                                       }}
                                     />
                                   </FormControl>
-                                  <FormLabel htmlFor={option.id} className="text-xs">
+                                  <FormLabel className="text-xs">
                                     {option.label.toUpperCase()}
                                   </FormLabel>
                                 </FormItem>
@@ -451,6 +532,28 @@ export const RegisterMemoPage = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="observation"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel className="primary-text">OBSERVACIÓN <span className="text-red-500 text-xl">*</span></FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Observaciones de oficio"
+                            className="bg-gray-200"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Añada las observaciones acerca del estatus o procedimiento del oficio.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 <div className="space-y-4 flex justify-center">
                   <Button type="submit" className="w-[400px] h-[45px] bg-primary-green primary-text text-lg">Enviar</Button>

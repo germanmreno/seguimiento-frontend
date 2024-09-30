@@ -61,7 +61,7 @@
 }
 
 .footer-foreground {
-  background: rgba(102, 128, 42, 0.8);
+  background: #24387d;
 }
 
 .button-gradient {
@@ -74,6 +74,11 @@
     rgba(228, 228, 228, 1) 76%,
     rgba(213, 212, 215, 1) 100%
   );
+}
+
+label:has(+ input:required):after {
+  content: ' *';
+  color: red;
 }
 
 .button-gradient-solid {
@@ -89,14 +94,14 @@
 }
 
 .navbar-gradient {
-  background: rgb(132, 153, 86);
+  background: rgb(36, 56, 125);
   background: linear-gradient(
     90deg,
-    rgba(132, 153, 86, 0.7) 0%,
-    rgba(6, 95, 63, 0.95) 31%,
-    rgba(105, 160, 58, 1) 68%,
-    rgba(228, 228, 228, 0.95) 88%,
-    rgba(255, 255, 255, 0.2) 97%
+    rgba(36, 56, 125, 1) 0%,
+    rgba(19, 77, 153, 1) 22%,
+    rgba(2, 94, 62, 1) 50%,
+    rgba(102, 127, 42, 1) 82%,
+    rgba(255, 255, 255, 0) 100%
   );
 }
 
