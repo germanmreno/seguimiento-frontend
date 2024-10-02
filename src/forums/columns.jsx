@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useNavigate } from "react-router-dom";
 
 const myCustomFilterFn = (row, columnId, filterValue) => {
   const lowerFilterValue = filterValue.toLowerCase();
@@ -56,7 +57,7 @@ const SortedIcon = ({ isSorted = "asc" }) => {
   }
 };
 
-export const columns = [
+export const columns = (navigate) => [
   {
     id: "select",
     header: ({ table }) => (
@@ -165,7 +166,6 @@ export const columns = [
       );
     },
     cell: ({ row }) => {
-      console.log(row)
       const date = row.original.reception_date
 
       const formatDate = (date) => {
@@ -270,6 +270,9 @@ export const columns = [
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => {
+
+      const id = row.getValue("id")
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild className="flex justify-center">
@@ -281,7 +284,7 @@ export const columns = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Abrir foro</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate(`/create-forum/${id.toLocaleLowerCase()}`)}>Abrir foro</DropdownMenuItem>
             <DropdownMenuItem>Cerrar foro</DropdownMenuItem>
             <DropdownMenuItem>Editar foro</DropdownMenuItem>
             <DropdownMenuItem>Cambiar status</DropdownMenuItem>

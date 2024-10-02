@@ -3,7 +3,7 @@ import { format } from "date-fns"
 import { useForm, Controller } from "react-hook-form"
 import { Layout } from "../layout"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { date, z } from "zod"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -86,7 +86,7 @@ export const RegisterMemoPage = () => {
     },
   })
 
-  const { control, handleSubmit, watch } = form;
+  const { watch } = form;
 
   const onSubmit = async (data) => {
 

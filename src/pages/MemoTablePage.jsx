@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { columns } from "../forums/columns"
 import { DataTable } from "../forums/data-table"
+
 import { Layout } from "../layout/Layout"
+
 import fetchMemos from "@/helpers/fetchMemos";
 
 export const MemoTablePage = () => {
+
+  const navigate = useNavigate();
 
   const [memos, setMemos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +42,7 @@ export const MemoTablePage = () => {
         <div className="bg-[#24387d] text-white rounded-t-lg w-full h-12 flex items-center justify-start p-0 border-solid border-gray border-2 pl-4" >
           <h1 className="primary-text p-0 m-0">LISTA DE OFICIOS DE LA CORPORACIÓN VENEZOLANA DE MINERÍA</h1>
         </div>
-        <DataTable columns={columns} data={memos} />
+        <DataTable columns={columns(navigate)} data={memos} />
       </div>
     </Layout>
   )

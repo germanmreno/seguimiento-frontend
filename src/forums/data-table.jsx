@@ -24,9 +24,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { useNavigate } from "react-router-dom"
 
 export function DataTable({ columns = [], data = [] }) {
-  const navigate = useNavigate()
-
-  console.log(data)
 
   const [sorting, setSorting] = useState([])
   const [columnFilters, setColumnFilters] = useState([])
@@ -47,6 +44,8 @@ export function DataTable({ columns = [], data = [] }) {
     setCurrentStatus(status);
     table.getColumn('status')?.setFilterValue(status === 'all' ? '' : status);
   };
+
+  const navigate = useNavigate();
 
   const table = useReactTable({
     data,
