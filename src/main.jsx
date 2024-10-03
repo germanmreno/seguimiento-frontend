@@ -5,6 +5,7 @@ import './index.css'
 import { MainPage, LoginPage, RegisterMemoPage, MemoTablePage } from './pages'
 import { CreateForumPage } from './pages/CreateForumPage'
 import { ForumPage } from './pages/ForumPage'
+import { CheckForumPage } from './pages/CheckForumPage'
 
 const router = createBrowserRouter([
   {
@@ -39,6 +40,12 @@ const router = createBrowserRouter([
     path: "/forums/:id",
     element: (
       <ForumPage />
+    )
+  },
+  {
+    path: "/check-forum/:id",
+    element: (
+      <CheckForumPage />
     )
   }
 ]);

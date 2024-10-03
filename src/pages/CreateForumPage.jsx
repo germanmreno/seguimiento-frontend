@@ -60,7 +60,7 @@ export const CreateForumPage = () => {
       console.log('Success:', result);
 
       // Navigate to another page or show a success message
-      navigate(`/forums/${id}`);
+      navigate(`/forums/${result.id}`);
     } catch (error) {
       console.error('Error:', error);
       // Show an error message to the user

@@ -284,7 +284,7 @@ export const columns = (navigate) => [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate(`/create-forum/${id.toLocaleLowerCase()}`)}>Abrir foro</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate(`/check-forum/${id.toLocaleLowerCase()}`)}>Abrir foro</DropdownMenuItem>
             <DropdownMenuItem>Cerrar foro</DropdownMenuItem>
             <DropdownMenuItem>Editar foro</DropdownMenuItem>
             <DropdownMenuItem>Cambiar status</DropdownMenuItem>

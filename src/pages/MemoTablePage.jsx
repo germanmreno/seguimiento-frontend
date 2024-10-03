@@ -7,6 +7,7 @@ import { DataTable } from "../forums/data-table"
 import { Layout } from "../layout/Layout"
 
 import fetchMemos from "@/helpers/fetchMemos";
+import { Loader } from "@/components/custom";
 
 export const MemoTablePage = () => {
 
@@ -31,7 +32,9 @@ export const MemoTablePage = () => {
     getMemos();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return (<Layout>
+    <Loader />
+  </Layout>)
   if (error) return <p>Error: {error.message}</p>;
 
 
