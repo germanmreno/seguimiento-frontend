@@ -25,6 +25,8 @@ const badgeVariants = cva(
           "border-transparent bg-yellow-200 text-yellow-600 shadow hover:bg-yellow-400/80",
         urgency:
           "border-transparent bg-yellow-400 text-yellow-900 shadow hover:bg-yellow-700/80",
+        officeBadge:
+          "border-transparent bg-white text-black shadow hover:bg-slate-400/80",
       },
     },
     defaultVariants: {

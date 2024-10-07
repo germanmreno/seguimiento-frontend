@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const myCustomFilterFn = (row, columnId, filterValue) => {
   const lowerFilterValue = filterValue.toLowerCase();
@@ -57,7 +57,7 @@ const SortedIcon = ({ isSorted = "asc" }) => {
   }
 };
 
-export const columns = (navigate) => [
+export const columns = ({ navigate, toast, setRefresh }) => [
   {
     id: "select",
     header: ({ table }) => (
@@ -271,7 +271,22 @@ export const columns = (navigate) => [
     header: "Acciones",
     cell: ({ row }) => {
 
-      const id = row.getValue("id")
+      const id = row.getValue("id");
+      const status = row.getValue("status");
+
+      const handleChangeStatus = async () => {
+        const newStatus = status === "PENDING" ? "COMPLETED" : "PENDING";
+        try {
+          await axios.patch(`http://localhost:3000/memos/${id}/status`, { status: newStatus });
+          toast.success(`${id}:
+            Status actualizado a ${(newStatus === "COMPLETED") ? "Finalizado" : "En proceso"
+            } `);
+          setRefresh(prev => !prev)
+        } catch (error) {
+          toast.error('Error cambiando el status. Contacte a Soporte.');
+          console.error('Failed to change status:', error);
+        }
+      };
 
       return (
         <DropdownMenu>
@@ -287,7 +302,7 @@ export const columns = (navigate) => [
             <DropdownMenuItem onClick={() => navigate(`/check-forum/${id.toLocaleLowerCase()}`)}>Abrir foro</DropdownMenuItem>
             <DropdownMenuItem>Cerrar foro</DropdownMenuItem>
             <DropdownMenuItem>Editar foro</DropdownMenuItem>
-            <DropdownMenuItem>Cambiar status</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleChangeStatus}>Cambiar status</DropdownMenuItem>
             <DropdownMenuItem>Editar registro</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

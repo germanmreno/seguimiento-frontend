@@ -33,7 +33,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, File, FileImage } from "lucide-react"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 
@@ -66,6 +66,7 @@ export const RegisterMemoPage = () => {
   const navigate = useNavigate()
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -73,6 +74,7 @@ export const RegisterMemoPage = () => {
       applicant: "",
       attachment: [],
       id: "",
+      image: [],
       instruction: "",
       name: "",
       observation: "",
@@ -86,7 +88,7 @@ export const RegisterMemoPage = () => {
     },
   })
 
-  const { watch } = form;
+  const { watch, control } = form;
 
   const onSubmit = async (data) => {
 
@@ -113,6 +115,10 @@ export const RegisterMemoPage = () => {
 
   }
 
+  const handleFileChange = (event) => {
+    setSelectedFiles(Array.from(event.target.files));
+  };
+
   const formatTime = (hour, minute) => {
     const hourInt = parseInt(hour, 10);
     const minuteInt = parseInt(minute, 10);
@@ -124,6 +130,7 @@ export const RegisterMemoPage = () => {
 
   // Watch the hour value to determine AM or PM
   const selectedHour = watch('receptionHour');
+  const attachments = watch('attachment');
   const period = selectedHour && parseInt(selectedHour, 10) >= 12 ? 'PM' : 'AM';
 
   return (
@@ -451,6 +458,58 @@ export const RegisterMemoPage = () => {
                   )}
                 />
 
+                <Controller
+                  name="attachment"
+                  control={control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div>
+                          <FormLabel className="text-lg primary-text">IMAGEN(ES) DE RECEPCIÓN <span className="text-red-500 text-xl">*</span></FormLabel>
+                          <div className="w-full flex justify-center mt-2">
+                            <input
+                              type="file"
+                              multiple
+                              onChange={(e) => {
+                                handleFileChange(e);
+                                field.onChange(Array.from(e.target.files));
+                              }}
+                              className="hidden"
+                              id="file-upload"
+                            />
+                            <label
+                              htmlFor="file-upload"
+                              className="flex items-center max-w-80 justify-center px-4 py-2 bg-blue-400 text-white rounded cursor-pointer hover:bg-blue-600"
+                            >
+                              <FileImage size={24} className="mr-2" />
+                              <span>Adjuntar archivos</span>
+                            </label>
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        Añada el archivo comprobante de la recepción del oficio.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Display selected file names */}
+                <div className="mt-4">
+                  {selectedFiles.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium">Archivos seleccionados:</h4>
+                      <ul className="list-disc list-inside">
+                        {selectedFiles.map((file, index) => (
+                          <li key={index} className="text-sm">{file.name}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+
                 <FormField
                   control={form.control}
                   name="attachment"
@@ -508,31 +567,34 @@ export const RegisterMemoPage = () => {
                   )}
                 />
 
-                <div className="space-y-4 col-span-full">
-                  <Label className="text-lg primary-text">AÑADIR ANEXO</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="rounded-full shadow" variant="outline">
-                          Adjuntar archivos
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                          <DialogTitle className="text-center">
-                            Subir archivos
-                          </DialogTitle>
-                          <DialogDescription className="text-center">
-                            Sólo suba los archivos necesarios.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <ImageUpload />
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                {attachments.length === 0 && (
+                  <div className="space-y-4 col-span-full">
+                    <Label className="text-lg primary-text">AÑADIR ANEXO</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button className="rounded-full shadow" variant="outline">
+                            Adjuntar archivos
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle className="text-center">Subir archivos</DialogTitle>
+                          </DialogHeader>
+                          <div>
+                            {selectedFiles.map((file, index) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <File size={24} />
+                                <span>{file.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </div>
-                </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}

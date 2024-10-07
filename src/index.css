@@ -6,6 +6,8 @@
   :root {
     --background: 0 0% 100%;
     --primary-green: #025e3e;
+    --primary-blue: #24387d;
+    --secondary-blue: #134d99;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -101,7 +103,7 @@ label:has(+ input:required):after {
     rgba(19, 77, 153, 1) 22%,
     rgba(2, 94, 62, 1) 50%,
     rgba(102, 127, 42, 1) 82%,
-    rgba(255, 255, 255, 0) 100%
+    rgba(255, 255, 255, 0.5) 100%
   );
 }
 
@@ -109,7 +111,7 @@ label:has(+ input:required):after {
   background: rgb(228, 228, 223);
   background: linear-gradient(
     0deg,
-    rgba(228, 228, 223, 1) 0%,
+    rgba(230, 228, 223, 1) 0%,
     rgba(231, 227, 224, 1) 0%,
     rgba(218, 218, 218, 1) 100%
   );

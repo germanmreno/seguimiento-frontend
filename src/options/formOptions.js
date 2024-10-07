@@ -4,10 +4,6 @@ export const receptionOptions = [
   { id: 'PRE_VP', label: 'PRE - VP' },
 ];
 
-JSON.stringify();
-
-JSON.parse();
-
 export const gerencyOptions = [
   { id: '100', label: 'PRESIDENCIA' },
   { id: '101', label: 'VICEPRESIDENCIA' },
