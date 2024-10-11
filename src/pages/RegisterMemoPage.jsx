@@ -24,11 +24,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Badge } from "../components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group"
 import { attachedOptions, gerencyOptions, instructionOptions, receptionOptions, responseOptions, urgencyOptions } from "../options/formOptions"
-import ImageUpload from "@/components/custom/image-upload"
+
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,

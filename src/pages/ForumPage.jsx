@@ -1,22 +1,23 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-
-
+import { useParams } from "react-router-dom";
 import { Layout } from "../layout/Layout"
 import axios from "axios";
 import { Loader } from "@/components/custom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, MessageSquare, ThumbsUp } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ChatBox } from "@/components/custom";
+import { urgencyOptions } from "@/options/formOptions";
 
 export const ForumPage = () => {
 
-  const navigate = useNavigate();
   const { id } = useParams();
 
   const [forum, setForum] = useState(null);
   const [relatedOffices, setRelatedOffices] = useState([]);
   const [error, setError] = useState('');
+
+  const urgencyVariant = urgencyOptions.find(option => option.id === forum?.memoDetails?.urgencyLevel?.toUpperCase())?.variant;
 
   useEffect(() => {
     const fetchForumDetails = async () => {
@@ -70,26 +71,30 @@ export const ForumPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="mb-4">{forum.description}</p>
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
+              <span className="text-justify">{forum.description}</span>
+            </CardContent>
+            <CardFooter className="text-sm text-gray-500 ">
+              <div className="flex justify-between w-full">
+                <div className="flex items-center">
+                  <span>NIVEL DE URGENCIA:</span>
+                  <Badge className="ml-2" variant={urgencyVariant}>
+                    {forum.memoDetails.urgencyLevel}
+                  </Badge>
+                </div>
                 <span className="flex items-center">
-                  <MessageSquare className="mr-1 h-4 w-4" />
-                  replies
-                </span>
-                <span className="flex items-center">
-                  <Eye className="mr-1 h-4 w-4" />
-                  views
-                </span>
-                <span className="flex items-center">
-                  <ThumbsUp className="mr-1 h-4 w-4" />
-                  likes
+                  <Clock className="mr-1 h-4 w-4" />
+                  Creado el {new Date(forum.createdAt).toLocaleDateString()}
                 </span>
               </div>
-            </CardContent>
-            <CardFooter>
             </CardFooter>
           </Card>
         </div>
+
+        <div className="mt-4 flex flex-col items-center justify-center border-t-2 border-primary-blue rounded-b-lg bg-primary-blue text-white rounded-lg border-none  ">
+          <h2 className="text-2xl font-bold py-4 primary-text">Chat del foro</h2>
+          <ChatBox forumId={id} />
+        </div>
+
 
       </div>
     </Layout >

@@ -1,20 +1,58 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Label } from "../components/ui/label"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useNavigate } from "react-router-dom";
+import { AlertCircle } from "lucide-react";
+import axios from "axios";
 
 export const LoginPage = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    try {
+      console.log('Sending login request:', { username, password });
+      const response = await axios.post('http://localhost:3000/auth/login',
+        JSON.stringify({ username, password }), // Stringify the data
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+      console.log('Login response:', response.data);
+
+      const { token, user } = response.data;
+
+      // Store the token and user info in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Redirect to the forums page or dashboard
+      navigate('/home');
+    } catch (error) {
+      console.error('Login error:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+        console.error('Error headers:', error.response.headers);
+      }
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
+    }
+  };
 
   return (
     <div className="flex max-h-screen">
@@ -26,42 +64,43 @@ export const LoginPage = () => {
           <h1 className="text-3xl font-bold mb-6 primary-text text-center">¡Bienvenido (a)!</h1>
           <p className="mb-6 font-bold secondary-text text-center">Para iniciar sesión, por favor introduce tus datos.</p>
 
-          <form className="space-y-4">
-            <div className="flex flex-row justify-start align-center">
-              <Select>
-                <SelectTrigger className="w-[80px] bg-[#d4d4d4] rounded-r-lg">
-                  <SelectValue placeholder="V" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Documento</SelectLabel>
-                    <SelectItem value="apple">V</SelectItem>
-                    <SelectItem value="banana">E</SelectItem>
-                    <SelectItem value="blueberry">J</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-              <Input className="mx-2 w-full bg-[#f3f3f3] border-4 border-[#f3f3f3] rounded-lg" type="text" placeholder="Documento" />
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="grid w-full items-center gap-1.5">
+              <Label htmlFor="username" className="font-bold">Usuario</Label>
+              <Input
+                id="username"
+                className="bg-[#f3f3f3] border-4 border-[#f3f3f3] rounded-lg"
+                placeholder="Nombre de usuario"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
             </div>
 
             <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="user_handle" className="font-bold">Usuario</Label>
-              <Input id="user_handle" className="bg-[#f3f3f3] border-4 border-[#f3f3f3] rounded-lg" placeholder="Nombre de usuario" />
+              <Label htmlFor="password" className="font-bold">Contraseña</Label>
+              <Input
+                id="password"
+                type="password"
+                className="bg-[#f3f3f3] border-4 border-[#f3f3f3] rounded-lg"
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
 
-            <div className="flex space-x-2 w-full">
-              <Button variant="outline" className="flex-1 flex-col h-50 w-80 rounded-lg p-2 button-gradient" onClick={() => navigate("/home")}>
-                <img src="/icon_login.png" alt="registro" width="50px" />
-                <span className="primary-text mt-[-8px]">Ingresar</span>
-              </Button>
-              <Button variant="outline" className="flex-1 flex-col h-50 w-80 rounded-lg p-2 button-gradient">
-                <img src="/icon_register.png" alt="registro" width="50px" />
-                <span className="primary-text mt-[-8px]">Registro</span>
-              </Button>
-              <Button variant="outline" className="flex-1 flex-col h-50 w-80 rounded-lg p-2 button-gradient">
-                <img src="/icon_unlock.png" alt="registro" width="50px" />
-                <span className="primary-text mt-[-8px]">Desbloqueo</span>
+            <div className="flex justify-center">
+
+              <Button type="submit" className="w-60px h-[45px] rounded-sm p-2 button-gradient text-black font-bold primary-text">
+                <img src="/icon_login.png" alt="login" width="50px" className="mr-2" />
+                Ingresar
               </Button>
             </div>
           </form>
