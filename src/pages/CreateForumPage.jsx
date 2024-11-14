@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { Layout } from "../layout"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -15,7 +14,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import axios from "axios"
 import { useNavigate, useParams } from "react-router-dom"
 import { Textarea } from "@/components/ui/textarea"
 

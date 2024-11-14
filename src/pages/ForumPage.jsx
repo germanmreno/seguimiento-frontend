@@ -8,10 +8,15 @@ import { Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatBox } from "@/components/custom";
 import { urgencyOptions } from "@/options/formOptions";
+import { useAuth } from "../contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const ForumPage = () => {
 
   const { id } = useParams();
+  const { user } = useAuth();
 
   const [forum, setForum] = useState(null);
   const [relatedOffices, setRelatedOffices] = useState([]);
@@ -34,6 +39,20 @@ export const ForumPage = () => {
 
     fetchForumDetails();
   }, [id]);
+
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:3000/forums/${id}/messages/${messageId}`,
+        { data: { user_id: user.id } }
+      );
+
+      toast.success("Mensaje borrado correctamente");
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+      toast.error(error.response?.data?.error || 'Failed to delete message');
+    }
+  };
 
   if (error) {
     return <p>{error}</p>;
@@ -92,7 +111,11 @@ export const ForumPage = () => {
 
         <div className="mt-4 flex flex-col items-center justify-center border-t-2 border-primary-blue rounded-b-lg bg-primary-blue text-white rounded-lg border-none  ">
           <h2 className="text-2xl font-bold py-4 primary-text">Chat del foro</h2>
-          <ChatBox forumId={id} />
+          <ChatBox
+            forumId={id}
+            onDeleteMessage={handleDeleteMessage}
+            currentUserId={user?.id}
+          />
         </div>
 
 
