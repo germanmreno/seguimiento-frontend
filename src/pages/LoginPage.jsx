@@ -4,15 +4,21 @@ import { Input } from "@/components/ui/input"
 
 import { Label } from "../components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import axios from "axios";
+import { useAuth } from '../contexts/AuthContext';
 
 export const LoginPage = () => {
+  const { user, login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  if (user) {
+    return <Navigate to="/home" replace />;
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,12 +38,7 @@ export const LoginPage = () => {
       console.log('Login response:', response.data);
 
       const { token, user } = response.data;
-
-      // Store the token and user info in localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      // Redirect to the forums page or dashboard
+      login(user, token);
       navigate('/home');
     } catch (error) {
       console.error('Login error:', error);

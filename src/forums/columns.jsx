@@ -1,9 +1,8 @@
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
-import { MoreHorizontal } from "lucide-react"
-import { ArrowUp, ArrowDown } from 'lucide-react';
-
+import { MoreHorizontal, ArrowUp, ArrowDown, Lock, Unlock, FileImage, Eye } from "lucide-react"
+import { useState, useEffect } from 'react';
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import axios from "axios";
+import { cn } from "@/lib/utils"
 
 const myCustomFilterFn = (row, columnId, filterValue) => {
   const lowerFilterValue = filterValue.toLowerCase();
@@ -95,6 +95,9 @@ export const columns = ({ navigate, toast, setRefresh }) => [
         </Button>
       );
     },
+    cell: ({ row }) => {
+      return <Badge>{row.original.id}</Badge>
+    }
   },
   {
     accessorKey: "name",
@@ -192,22 +195,24 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       );
     },
     cell: ({ row }) => {
-      const status = row.getValue("status")
+      const status = row.getValue("status");
+      const forumStatus = row.original.forumStatus; // We'll need to add this to the memo query
 
-      const formatStatus = {
-        PENDING: "En proceso",
-        COMPLETED: "Finalizado"
-      }[status.toString()]
-
-      const formatVariant = {
-        PENDING: "pending",
-        COMPLETED: "completed"
-      }[status.toString()]
-
-      return (<div className="text-center">
-
-        <Badge variant={formatVariant}>	&#8226; {formatStatus}</Badge>
-      </div>)
+      return (
+        <div className="text-center space-y-1">
+          <Badge variant={status === "PENDING" ? "pending" : "completed"}>
+            &#8226; {status === "PENDING" ? "En proceso" : "Finalizado"}
+          </Badge>
+          {forumStatus && (
+            <Badge
+              variant={forumStatus === "OPEN" ? "outline" : "destructive"}
+              className="text-xs"
+            >
+              Foro {forumStatus === "OPEN" ? "Abierto" : "Cerrado"}
+            </Badge>
+          )}
+        </div>
+      );
     },
   },
   {
@@ -267,31 +272,107 @@ export const columns = ({ navigate, toast, setRefresh }) => [
 
   },
   {
+    accessorKey: "reception_images",
+    header: "Recepción",
+    cell: ({ row }) => {
+      const images = row.original.reception_images;
+
+      const handleViewImage = (image) => {
+        // For PDFs, open in new tab
+        if (image.isPdf) {
+          window.open(`http://localhost:3000/${image.path}`, '_blank');
+          return;
+        }
+
+        // For images, create a modal or new window to view
+        const imageUrl = `http://localhost:3000/${image.path}`;
+        window.open(imageUrl, '_blank', 'width=800,height=600');
+      };
+
+      return (
+        <div className="flex justify-center gap-2">
+          {images && images.map((image, index) => (
+            <Button
+              key={index}
+              variant="ghost"
+              size="icon"
+              onClick={() => handleViewImage(image)}
+              className="hover:bg-green-700/20"
+              title={image.filename}
+            >
+              {image.isPdf ? (
+                <FileImage className="h-5 w-5 text-blue-500" />
+              ) : (
+                <Eye className="h-5 w-5 text-green-600" />
+              )}
+            </Button>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => {
-
+      const [forumStatus, setForumStatus] = useState(null);
+      const [forumId, setForumId] = useState(null);
+      const [isLoading, setIsLoading] = useState(true);
       const id = row.getValue("id");
       const status = row.getValue("status");
+
+      useEffect(() => {
+        const checkForumStatus = async () => {
+          try {
+            const response = await axios.get(`http://localhost:3000/forums/check-existence/${id}`);
+            if (response.data.exists) {
+              setForumStatus(response.data.status);
+              setForumId(response.data.id);
+            }
+            setIsLoading(false);
+          } catch (error) {
+            console.error('Error checking forum status:', error);
+            setIsLoading(false);
+          }
+        };
+
+        checkForumStatus();
+      }, [id]);
 
       const handleChangeStatus = async () => {
         const newStatus = status === "PENDING" ? "COMPLETED" : "PENDING";
         try {
           await axios.patch(`http://localhost:3000/memos/${id}/status`, { status: newStatus });
-          toast.success(`${id}:
-            Status actualizado a ${(newStatus === "COMPLETED") ? "Finalizado" : "En proceso"
-            } `);
-          setRefresh(prev => !prev)
+          toast.success(`${id}: Status actualizado a ${newStatus === "COMPLETED" ? "Finalizado" : "En proceso"}`);
+          setRefresh(prev => !prev);
         } catch (error) {
           toast.error('Error cambiando el status. Contacte a Soporte.');
           console.error('Failed to change status:', error);
         }
       };
 
+      const handleForumStatus = async () => {
+        if (!forumId) {
+          toast.error('No existe un foro para este memo');
+          return;
+        }
+
+        try {
+          const newStatus = forumStatus === 'OPEN' ? 'CLOSED' : 'OPEN';
+          await axios.patch(`http://localhost:3000/forums/${forumId}/status`, { status: newStatus });
+          setForumStatus(newStatus);
+          toast.success(`Foro ${newStatus === 'OPEN' ? 'abierto' : 'cerrado'} exitosamente`);
+          setRefresh(prev => !prev);
+        } catch (error) {
+          toast.error('Error al cambiar el estado del foro');
+          console.error('Error:', error);
+        }
+      };
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild className="flex justify-center">
-            <Button variant="ghost " className="h-8 w-8 p-0">
+            <Button variant="ghost" className="h-8 w-8 p-0">
               <span className="sr-only">Abrir acciones</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -299,14 +380,40 @@ export const columns = ({ navigate, toast, setRefresh }) => [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate(`/check-forum/${id.toLocaleLowerCase()}`)}>Abrir foro</DropdownMenuItem>
-            <DropdownMenuItem>Cerrar foro</DropdownMenuItem>
-            <DropdownMenuItem>Editar foro</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleChangeStatus}>Cambiar status</DropdownMenuItem>
-            <DropdownMenuItem>Editar registro</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate(`/check-forum/${id.toLowerCase()}`)}>
+              Abrir foro
+            </DropdownMenuItem>
+            {!isLoading && forumId && (
+              <DropdownMenuItem
+                onClick={handleForumStatus}
+                className={cn(
+                  forumStatus === 'OPEN'
+                    ? "text-red-600 hover:text-red-700"
+                    : "text-green-600 hover:text-green-700"
+                )}
+              >
+                {forumStatus === 'OPEN' ? (
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    <span>Cerrar foro</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Unlock className="h-4 w-4" />
+                    <span>Reabrir foro</span>
+                  </div>
+                )}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={handleChangeStatus}>
+              Cambiar status
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              Editar registro
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
 

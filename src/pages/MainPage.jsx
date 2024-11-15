@@ -13,7 +13,7 @@ export const MainPage = () => {
       <ImageCarousel />
 
       <div className="flex space-x-16 justify-center items-center w-full mt-12 ">
-        <Button disabled variant="outline" className="flex flex-col h-36 w-52 rounded-lg p-1 button-gradient shadow-xl">
+        <Button variant="outline" className="flex flex-col h-36 w-52 rounded-lg p-1 button-gradient shadow-xl" onClick={() => navigate("/forums")}>
           <img src="/button_forums.png" alt="registro" className="h-[80px]" />
           <h1 className="primary-text text-lg mb-2">Foros</h1>
         </Button>

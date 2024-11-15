@@ -1,22 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import './index.css'
 import { MainPage, LoginPage, RegisterMemoPage, MemoTablePage } from './pages'
 import { CreateForumPage } from './pages/CreateForumPage'
 import { ForumPage } from './pages/ForumPage'
 import { CheckForumPage } from './pages/CheckForumPage'
 import { AuthProvider } from './contexts/AuthContext'
-import { ProtectedRoute } from './components/ProtectedRoute'
-
-// Create a wrapper component to provide auth context
-const AppWrapper = ({ children }) => {
-  return (
-    <AuthProvider>
-      {children}
-    </AuthProvider>
-  );
-};
+import { PrivateRouter } from './components/PrivateRouter'
+import { ForumsPage } from './pages/ForumsPage'
 
 const router = createBrowserRouter([
   {
@@ -24,60 +16,44 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
-    path: "/home",
-    element: (
-      <ProtectedRoute>
-        <AppWrapper>
-          <MainPage />
-        </AppWrapper>
-      </ProtectedRoute>
-    ),
+    element: <PrivateRouter />,
+    children: [
+      {
+        path: "/home",
+        element: <MainPage />
+      },
+      {
+        path: "/memos",
+        element: <MemoTablePage />
+      },
+      {
+        path: "/register-memo",
+        element: <RegisterMemoPage />
+      },
+      {
+        path: "/create-forum/:id",
+        element: <CreateForumPage />
+      },
+      {
+        path: "/forums/:id",
+        element: <ForumPage />
+      },
+      {
+        path: "/check-forum/:id",
+        element: <CheckForumPage />
+      },
+      {
+        path: "/forums",
+        element: <ForumsPage />
+      }
+    ]
   },
   {
-    path: "/memos",
-    element: (
-      <AppWrapper>
-        <MemoTablePage />
-      </AppWrapper>
-    )
-  },
-  {
-    path: "/register-memo",
-    element: (
-      <AppWrapper>
-        <RegisterMemoPage />
-      </AppWrapper>
-    )
-  },
-  {
-    path: "/create-forum/:id",
-    element: (
-      <AppWrapper>
-        <CreateForumPage />
-      </AppWrapper>
-    )
-  },
-  {
-    path: "/forums/:id",
-    element: (
-      <ProtectedRoute>
-        <AppWrapper>
-          <ForumPage />
-        </AppWrapper>
-      </ProtectedRoute>
-    )
-  },
-  {
-    path: "/check-forum/:id",
-    element: (
-      <AppWrapper>
-        <CheckForumPage />
-      </AppWrapper>
-    )
+    path: "*",
+    element: <Navigate to="/" replace />
   }
 ]);
 
-// Wrap the RouterProvider with AuthProvider to make auth available globally
 const App = () => (
   <StrictMode>
     <AuthProvider>
