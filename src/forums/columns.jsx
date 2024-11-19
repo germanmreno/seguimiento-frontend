@@ -1,7 +1,7 @@
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
-import { MoreHorizontal, ArrowUp, ArrowDown, Lock, Unlock, FileImage, Eye } from "lucide-react"
+import { MoreHorizontal, ArrowUp, ArrowDown, Lock, Unlock, FileImage, Eye, FileText } from "lucide-react"
 import { useState, useEffect } from 'react';
 
 import { Button } from "@/components/ui/button"
@@ -277,6 +277,14 @@ export const columns = ({ navigate, toast, setRefresh }) => [
     cell: ({ row }) => {
       const images = row.original.reception_images;
 
+      if (!images || images.length === 0) {
+        return (
+          <div className="text-center text-gray-500 text-sm">
+            Sin imágenes
+          </div>
+        );
+      }
+
       const handleViewImage = (image) => {
         // For PDFs, open in new tab
         if (image.isPdf) {
@@ -304,6 +312,53 @@ export const columns = ({ navigate, toast, setRefresh }) => [
                 <FileImage className="h-5 w-5 text-blue-500" />
               ) : (
                 <Eye className="h-5 w-5 text-green-600" />
+              )}
+            </Button>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "attachment_files",
+    header: () => {
+      return <div className="text-center">Adjuntos</div>
+    },
+    cell: ({ row }) => {
+      const files = row.original.attachment_files;
+
+      if (!files || files.length === 0) {
+        return (
+          <div className="text-center text-gray-500 text-sm">
+            Sin adjuntos
+          </div>
+        );
+      }
+
+      const handleViewFile = (file) => {
+        if (file.type === 'application/pdf') {
+          window.open(`http://localhost:3000/${file.path}`, '_blank');
+          return;
+        }
+        const fileUrl = `http://localhost:3000/${file.path}`;
+        window.open(fileUrl, '_blank', 'width=800,height=600');
+      };
+
+      return (
+        <div className="flex justify-center gap-2">
+          {files && files.map((file, index) => (
+            <Button
+              key={index}
+              variant="ghost"
+              size="icon"
+              onClick={() => handleViewFile(file)}
+              className="hover:bg-blue-700/20"
+              title={file.filename}
+            >
+              {file.type === 'application/pdf' ? (
+                <FileText className="h-5 w-5 text-blue-500" />
+              ) : (
+                <Eye className="h-5 w-5 text-blue-600" />
               )}
             </Button>
           ))}

@@ -4,7 +4,7 @@ import { Layout } from "../layout/Layout"
 import axios from "axios";
 import { Loader } from "@/components/custom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock } from "lucide-react";
+import { Clock, MessageCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatBox } from "@/components/custom";
 import { urgencyOptions } from "@/options/formOptions";
@@ -110,60 +110,141 @@ export const ForumPage = () => {
                 {forum.description}
               </p>
 
-              {forum.memoDetails?.reception_images?.length > 0 && (
-                <div className="mt-4 border-t pt-4">
-                  <h3 className="text-sm font-medium mb-3 flex items-center gap-2 text-gray-700">
-                    <Image className="w-4 h-4" />
-                    Archivos adjuntos
+              {forum.memoDetails?.instruction && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium mb-3 text-gray-700">
+                    Instrucción del memo:
                   </h3>
-                  <div className="grid grid-cols-6 gap-2">
-                    {forum.memoDetails.reception_images.map((image, index) => (
-                      <Dialog key={index}>
-                        <DialogTrigger asChild>
-                          <div className="group cursor-pointer">
-                            {image.isPdf ? (
-                              <div className="border rounded-lg p-2 hover:bg-gray-50 transition-colors flex flex-col items-center justify-center h-24">
-                                <FileText className="w-8 h-8 text-red-500 mb-1" />
-                                <span className="text-xs text-gray-600 text-center break-words max-w-full px-1 line-clamp-1">
-                                  {image.filename}
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="relative overflow-hidden rounded-lg border aspect-square h-24">
-                                <img
-                                  src={`http://localhost:3000/${image.path}`}
-                                  alt={`Imagen ${index + 1}`}
-                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <span className="text-white text-xs">Ver</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-3xl max-h-[80vh]">
-                          {image.isPdf ? (
-                            <iframe
-                              src={`http://localhost:3000/${image.path}`}
-                              className="w-full h-[70vh]"
-                              title="PDF Viewer"
-                            />
-                          ) : (
-                            <div className="relative w-full h-full max-h-[70vh] flex items-center justify-center">
-                              <img
-                                src={`http://localhost:3000/${image.path}`}
-                                alt={`Imagen ${index + 1}`}
-                                className="max-w-full max-h-full object-contain"
-                              />
-                            </div>
-                          )}
-                        </DialogContent>
-                      </Dialog>
-                    ))}
+                  <div className="flex flex-wrap gap-2">
+                    <Badge
+                      variant="outline"
+                      className="bg-gray-50 text-gray-600 text-sm py-2 px-3"
+                    >
+                      {forum.memoDetails.instruction}
+                    </Badge>
                   </div>
                 </div>
               )}
+
+              <div className="space-y-6">
+                <div className="border-t pt-4">
+                  <h3 className="text-sm font-medium mb-3 flex items-center gap-2 text-gray-700">
+                    <Image className="w-4 h-4" />
+                    Imágenes de recepción
+                  </h3>
+                  {forum.memoDetails?.reception_images?.length > 0 ? (
+                    <div className="grid grid-cols-6 gap-2">
+                      {forum.memoDetails.reception_images.map((image, index) => (
+                        <Dialog key={index}>
+                          <DialogTrigger asChild>
+                            <div className="group cursor-pointer">
+                              {image.isPdf ? (
+                                <div className="border rounded-lg p-2 hover:bg-gray-50 transition-colors flex flex-col items-center justify-center h-24">
+                                  <FileText className="w-8 h-8 text-red-500 mb-1" />
+                                  <span className="text-xs text-gray-600 text-center break-words max-w-full px-1 line-clamp-1">
+                                    {image.filename}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="relative overflow-hidden rounded-lg border aspect-square h-24">
+                                  <img
+                                    src={`http://localhost:3000/${image.path}`}
+                                    alt={`Imagen ${index + 1}`}
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span className="text-white text-xs">Ver</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-3xl max-h-[80vh]">
+                            {image.isPdf ? (
+                              <iframe
+                                src={`http://localhost:3000/${image.path}`}
+                                className="w-full h-[70vh]"
+                                title="PDF Viewer"
+                              />
+                            ) : (
+                              <div className="relative w-full h-full max-h-[70vh] flex items-center justify-center">
+                                <img
+                                  src={`http://localhost:3000/${image.path}`}
+                                  alt={`Imagen ${index + 1}`}
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 text-sm flex items-center gap-2 italic">
+                      <span>No hay imágenes de recepción disponibles</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t pt-4">
+                  <h3 className="text-sm font-medium mb-3 flex items-center gap-2 text-gray-700">
+                    <FileText className="w-4 h-4" />
+                    Archivos adjuntos
+                  </h3>
+                  {forum.memoDetails?.attachment_files?.length > 0 ? (
+                    <div className="grid grid-cols-6 gap-2">
+                      {forum.memoDetails.attachment_files.map((file, index) => (
+                        <Dialog key={index}>
+                          <DialogTrigger asChild>
+                            <div className="group cursor-pointer">
+                              {file.type === 'application/pdf' ? (
+                                <div className="border rounded-lg p-2 hover:bg-gray-50 transition-colors flex flex-col items-center justify-center h-24">
+                                  <FileText className="w-8 h-8 text-blue-500 mb-1" />
+                                  <span className="text-xs text-gray-600 text-center break-words max-w-full px-1 line-clamp-1">
+                                    {file.filename}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="relative overflow-hidden rounded-lg border aspect-square h-24">
+                                  <img
+                                    src={`http://localhost:3000/${file.path}`}
+                                    alt={`Archivo ${index + 1}`}
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span className="text-white text-xs">Ver</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-3xl max-h-[80vh]">
+                            {file.type === 'application/pdf' ? (
+                              <iframe
+                                src={`http://localhost:3000/${file.path}`}
+                                className="w-full h-[70vh]"
+                                title="PDF Viewer"
+                              />
+                            ) : (
+                              <div className="relative w-full h-full max-h-[70vh] flex items-center justify-center">
+                                <img
+                                  src={`http://localhost:3000/${file.path}`}
+                                  alt={`Archivo ${index + 1}`}
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 text-sm flex items-center gap-2 italic">
+                      <span>No hay archivos adjuntos disponibles</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </CardContent>
             <CardFooter className="text-sm text-gray-600 px-8 py-4 bg-gray-50">
               <div className="flex justify-between w-full">
@@ -173,10 +254,20 @@ export const ForumPage = () => {
                     {forum.memoDetails.urgencyLevel}
                   </Badge>
                 </div>
-                <span className="flex items-center">
-                  <Clock className="mr-2 h-4 w-4" />
-                  Creado el {new Date(forum.createdAt).toLocaleDateString()}
-                </span>
+                <div className="flex flex-col items-end gap-0.5">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>Creado: {new Date(forum.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  {forum.lastMessageAt && (
+                    <div className="flex items-center gap-1 text-primary-blue">
+                      <Clock className="h-4 w-4" />
+                      <span>
+                        Último mensaje: {new Date(forum.lastMessageAt).toLocaleDateString()} {new Date(forum.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardFooter>
           </Card>

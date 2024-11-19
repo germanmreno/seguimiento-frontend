@@ -1,15 +1,24 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
-import { User } from "lucide-react";
+import { useViewTransition } from '../hooks/useViewTransition';
 
 export const NavBar = () => {
   const navigate = useNavigate();
+  const { startViewTransition } = useViewTransition();
   const { user, logout } = useAuth();
 
+  const handleNavigation = (path) => {
+    startViewTransition(() => {
+      navigate(path);
+    });
+  };
+
   const handleLogout = () => {
-    logout();
-    navigate("/", { replace: true });
+    startViewTransition(() => {
+      logout();
+      navigate("/", { replace: true });
+    });
   };
 
   return (
@@ -27,7 +36,7 @@ export const NavBar = () => {
             <Button
               variant="transparent"
               className="flex justify-center items-center p-2"
-              onClick={() => navigate("/home")}
+              onClick={() => handleNavigation("/home")}
             >
               <img src="/icon_home.png" alt="registro" className="h-[50px]" />
               <span className="primary-text">INICIO</span>

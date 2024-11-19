@@ -5,25 +5,28 @@ import { useLocation, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { motion } from "framer-motion"
+import { useViewTransition } from '../hooks/useViewTransition';
 
 export const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { startViewTransition } = useViewTransition();
   const isHomePage = location.pathname === "/home";
 
   const handleBack = () => {
-    // Check if we're in a forum detail page
-    if (location.pathname.startsWith('/forums/') && location.pathname !== '/forums') {
-      navigate('/forums', { replace: true }); // Use replace to remove the current page from history
-    } else if (location.pathname === '/forums') {
-      navigate('/home', { replace: true }); // When in forums list, go home
-    } else {
-      navigate(-1);
-    }
+    startViewTransition(() => {
+      if (location.pathname.startsWith('/forums/') && location.pathname !== '/forums') {
+        navigate('/forums', { replace: true });
+      } else if (location.pathname === '/forums') {
+        navigate('/home', { replace: true });
+      } else {
+        navigate(-1);
+      }
+    });
   };
 
   return (
-    <div className={`min-h-[100vh] w-full bg-cover bg-scroll bg-no-repeat bg-center`} style={{ backgroundImage: `url(/background_logo.png)` }} >
+    <div className={`min-h-[100vh] w-full bg-cover bg-scroll bg-no-repeat bg-center`} style={{ backgroundImage: `url(/background_logo.png)`, viewTransitionName: 'page' }} >
       <NavBar />
       {!isHomePage && (
         <div className="container mx-auto pt-6">
