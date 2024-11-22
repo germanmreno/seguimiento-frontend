@@ -1,5 +1,4 @@
-export const Loader = () => {
-
+export const Loader = ({ message = "CARGANDO..." }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-80">
       <div className="flex flex-col items-center">
@@ -23,8 +22,8 @@ export const Loader = () => {
             />
           </div>
         </div>
-        <p className="text-lg primary-text">CARGANDO...</p>
+        <p className="text-lg primary-text">{message}</p>
       </div>
-    </div >
-  )
-}
+    </div>
+  );
+};

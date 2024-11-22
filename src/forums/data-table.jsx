@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { memosService } from "@/services/memos.service";
 
 import {
   flexRender,
@@ -24,26 +25,27 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { useNavigate } from "react-router-dom"
 import { FilePlus } from "lucide-react"
 
-export function DataTable({ columns = [], data = [] }) {
+export function DataTable({ columns = [], data = [], onRefresh }) {
 
   const [sorting, setSorting] = useState([])
   const [columnFilters, setColumnFilters] = useState([])
   const [currentStatus, setCurrentStatus] = useState('all');
 
-  const handleStatusChange = (status = "") => {
+  const handleStatusChange = async (status = "") => {
     if (status === 'all') {
       table.getColumn('status')?.setFilterValue(undefined);
       setCurrentStatus('all');
       return;
     }
 
-    const formatStatus = {
-      PENDING: "En proceso",
-      COMPLETED: "Finalizado"
-    }[status]
-
     setCurrentStatus(status);
-    table.getColumn('status')?.setFilterValue(status === 'all' ? '' : status);
+    table.getColumn('status')?.setFilterValue(status);
+  };
+
+  const handleSearch = (event) => {
+    setCurrentStatus('all');
+    table.getColumn('status')?.setFilterValue(undefined);
+    table.getColumn('name')?.setFilterValue(event.target.value);
   };
 
   const navigate = useNavigate();
@@ -70,13 +72,8 @@ export function DataTable({ columns = [], data = [] }) {
           <Input
             placeholder='Filtrar por...'
             value={(table.getColumn('name')?.getFilterValue()) ?? ''}
-            onChange={(event) => {
-              setCurrentStatus('all');
-              table.getColumn('status')?.setFilterValue(undefined);
-              table.getColumn('name')?.setFilterValue(event.target.value);
-
-            }}
-            className='max-w-sm bg-white '
+            onChange={handleSearch}
+            className='max-w-sm bg-white'
           />
           <Select value={currentStatus} onValueChange={handleStatusChange}>
             <SelectTrigger className='w-[180px] ml-2 bg-white border-2'>

@@ -16,6 +16,9 @@ import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { useNavigate, useParams } from "react-router-dom"
 import { Textarea } from "@/components/ui/textarea"
+import { forumsService } from '@/services/forums.service';
+import { useState } from "react"
+import { Loader } from "@/components/custom/Loader"
 
 const formSchema = z.object({
   title: z.string().min(5, "El título es requerido y debe poseer más de 5 carácteres"),
@@ -26,6 +29,7 @@ export const CreateForumPage = () => {
 
   const navigate = useNavigate()
   const { id } = useParams()
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -36,38 +40,32 @@ export const CreateForumPage = () => {
   })
 
   const onSubmit = async (data) => {
-    console.log('Form submitted:', { ...data });
-
+    setIsLoading(true)
     try {
-      const response = await fetch('http://localhost:3000/forums', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          memo_id: id, // Assuming you want to include the memo_id from the URL params
-          ...data,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      const forumData = {
+        memo_id: id,
+        ...data,
+        status: 'ACTIVE',
+        createdAt: new Date().toISOString(),
       }
 
-      const result = await response.json();
-      console.log('Success:', result);
+      const response = await forumsService.createForum(forumData)
 
-      // Navigate to another page or show a success message
-      navigate(`/forums/${result.id}`);
+      if (response) {
+        navigate(`/forums/${response.id}`)
+      }
     } catch (error) {
-      console.error('Error:', error);
-      // Show an error message to the user
+      console.error('Error creating forum:', error)
+      // Here you might want to add some error handling UI feedback
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
 
     <Layout>
+      {isLoading && <Loader message={`Creando foro para el oficio ${id.toUpperCase()}...`} />}
       <div className="container mx-auto py-10 divide-y flex justify-center">
         <Card className="w-full max-w-4xl bg-white shadow-lg">
           <CardHeader className="bg-[#24387d] rounded-t-lg">
@@ -124,7 +122,13 @@ export const CreateForumPage = () => {
 
 
                 <div className="space-y-4 flex justify-center">
-                  <Button type="submit" className="w-[400px] h-[45px] bg-primary-green primary-text text-lg">Crear</Button>
+                  <Button
+                    type="submit"
+                    className="w-[400px] h-[45px] bg-primary-green primary-text text-lg"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Creando...' : 'Crear'}
+                  </Button>
                 </div>
               </form>
             </Form>

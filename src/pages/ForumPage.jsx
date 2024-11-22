@@ -1,40 +1,38 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Layout } from "../layout/Layout"
-import axios from "axios";
 import { Loader } from "@/components/custom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, MessageCircle } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatBox } from "@/components/custom";
 import { urgencyOptions } from "@/options/formOptions";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
+import { Lock, Image, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Image, FileText } from "lucide-react";
+import { forumsService } from "@/services/forums.service";
 
 export const ForumPage = () => {
-
   const { id } = useParams();
   const { user } = useAuth();
-  console.log('Current user:', user);
 
   const [forum, setForum] = useState(null);
   const [relatedOffices, setRelatedOffices] = useState([]);
   const [error, setError] = useState('');
-  const [selectedImage, setSelectedImage] = useState(null);
 
-  const urgencyVariant = urgencyOptions.find(option => option.id === forum?.memoDetails?.urgencyLevel?.toUpperCase())?.variant;
+  const urgencyVariant = urgencyOptions.find(
+    option => option.id === forum?.memoDetails?.urgencyLevel?.toUpperCase()
+  )?.variant;
 
   useEffect(() => {
     const fetchForumDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/forums/${id}`);
-        console.log(response)
-        setForum(response.data);
-        setRelatedOffices(response.data.relatedOffices);
+        const forumData = await forumsService.getForumDetails(id);
+        console.log('Forum details:', forumData);
+        setForum(forumData);
+        setRelatedOffices(forumData.relatedOffices);
       } catch (error) {
         console.error('Failed to fetch forum details:', error);
         setError('Failed to fetch forum details.');
@@ -46,29 +44,21 @@ export const ForumPage = () => {
 
   const handleDeleteMessage = async (messageId) => {
     try {
-      const response = await axios.delete(
-        `http://localhost:3000/forums/${id}/messages/${messageId}`,
-        { data: { user_id: user.id } }
-      );
-
+      await forumsService.deleteForumMessage(id, messageId, user.id);
       toast.success("Mensaje borrado correctamente");
+      // Optionally refresh forum data here
+      const updatedForum = await forumsService.getForumDetails(id);
+      setForum(updatedForum);
     } catch (error) {
       console.error('Failed to delete message:', error);
       toast.error(error.response?.data?.error || 'Failed to delete message');
     }
   };
 
-  if (error) {
-    return <p>{error}</p>;
-  }
+  if (error) return <Layout><p>{error}</p></Layout>;
+  if (!forum) return <Layout><Loader /></Layout>;
 
-  if (!forum) {
-    return (<Layout>
-      <Loader />
-    </Layout>)
-
-  }
-
+  // Rest of your component remains exactly the same
   return (
     <Layout>
       <div className="container mx-auto py-10 grid grid-rows-1 divide-y">
@@ -285,6 +275,7 @@ export const ForumPage = () => {
             forumId={id}
             onDeleteMessage={handleDeleteMessage}
             currentUserId={user?.id}
+            userRole={user?.role}
             forumStatus={forum.status}
           />
         </div>

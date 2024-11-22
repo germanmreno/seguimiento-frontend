@@ -23,10 +23,9 @@ import { Calendar } from "../components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { Badge } from "../components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group"
-import { attachedOptions, gerencyOptions, instructionOptions, receptionOptions, responseOptions, urgencyOptions } from "../options/formOptions"
+import { attachedOptions, gerencyOptions, receptionOptions, responseOptions, urgencyOptions } from "../options/formOptions"
 
 import { CalendarIcon, FileImage, FileText } from "lucide-react"
-import axios from "axios"
 import { useNavigate } from "react-router-dom"
 import { toast } from 'sonner'
 import {
@@ -38,6 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { CheckCircle2 } from "lucide-react"
+import { memosService } from "@/services/memos.service"
 
 const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
 const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'))
@@ -50,7 +50,6 @@ const formSchema = z.object({
     .min(1, "Debe adjuntar al menos una imagen de recepción"),
   attachment_files: z.array(z.any()).optional(),
   id: z.string().min(5, "El número de oficio es requerido"),
-  instruction: z.string().min(1, "Es requerido saber si necesita respuesta"),
   name: z.string().min(2, "Asunto de oficio es requerido"),
   observation: z.string().min(1, "Asunto de oficio es requerido"),
   officeIds: z.array(z.string()).min(1, "Debe seleccionar al menos una oficina"),
@@ -72,7 +71,7 @@ export const RegisterMemoPage = () => {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [newMemoId, setNewMemoId] = useState(null)
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [receptionFiles, setReceptionFiles] = useState([]);
   const [attachmentFiles, setAttachmentFiles] = useState([]);
@@ -85,7 +84,6 @@ export const RegisterMemoPage = () => {
       reception_images: [],
       attachment_files: [],
       id: "",
-      instruction: "",
       name: "",
       observation: "",
       officeIds: [],
@@ -104,96 +102,65 @@ export const RegisterMemoPage = () => {
   const handleReceptionFiles = (e) => {
     const files = Array.from(e.target.files);
     setReceptionFiles(files);
-
-    // Create an array of file information
-    const fileInfo = files.map(file => ({
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      isPdf: file.type === 'application/pdf'
-    }));
-
-    form.setValue('reception_images', fileInfo);
+    form.setValue('reception_images', files);
   };
 
   // Attachment Files Handler
   const handleAttachmentFiles = (e) => {
     const files = Array.from(e.target.files);
     setAttachmentFiles(files);
-
-    // Create an array of file information
-    const fileInfo = files.map(file => ({
-      name: file.name,
-      type: file.type,
-      size: file.size
-    }));
-
-    form.setValue('attachment_files', fileInfo);
+    form.setValue('attachment_files', files);
   };
 
   const onSubmit = async (data) => {
-    const formData = new FormData();
-
-    // Format the reception hour
-    const formattedHour = formatTime(data.receptionHour, data.receptionMinute);
-
-    // Create the memo data object
-    const memoData = {
-      ...data,
-      reception_hour: formattedHour, // Add the formatted hour
-      attachment_type: JSON.stringify(data.attachment_type),
-      reception_images: JSON.stringify(data.reception_images),
-      attachment_files: data.attachment_files.length > 0
-        ? JSON.stringify(data.attachment_files)
-        : null
-    };
-
-    // Remove the separate hour and minute fields as they're now combined
-    delete memoData.receptionHour;
-    delete memoData.receptionMinute;
-
-    console.log(memoData);
-
-    // Append the JSON stringified memo data
-    formData.append('formData', JSON.stringify(memoData));
-
-    // Append actual files
-    receptionFiles.forEach((file) => {
-      formData.append('reception_images', file);
-    });
-
-    if (attachmentFiles.length > 0) {
-      attachmentFiles.forEach((file) => {
-        formData.append('attachment_files', file);
-      });
-    }
-
     try {
-      const response = await axios.post('http://localhost:3000/memos', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      console.log('Memo created:', response.data);
+      const formData = new FormData();
 
-      // Show success toast
-      toast({
-        title: "¡Memo registrado exitosamente!",
-        description: `El memo ${response.data.id} ha sido creado.`,
-        variant: "success",
-      })
+      // Format the reception hour
+      const formattedHour = formatTime(data.receptionHour, data.receptionMinute);
 
-      // Store memo ID and show success dialog
-      setNewMemoId(response.data.id)
-      setShowSuccessDialog(true)
+      // Append basic form fields individually
+      formData.append('id', data.id);
+      formData.append('name', data.name);
+      formData.append('applicant', data.applicant);
+      formData.append('reception_method', data.reception_method);
+      formData.append('reception_date', data.reception_date.toISOString());
+      formData.append('reception_hour', formattedHour);
+      formData.append('response_require', data.response_require);
+      formData.append('observation', data.observation);
+      formData.append('status', data.status);
+      formData.append('urgency', data.urgency);
+
+      // Handle arrays
+      formData.append('attachment_type', JSON.stringify(data.attachment_type));
+      formData.append('officeIds', JSON.stringify(data.officeIds));
+
+      // Append reception images
+      if (receptionFiles.length > 0) {
+        receptionFiles.forEach((file) => {
+          formData.append('reception_images', file);
+        });
+      }
+
+      // Append attachment files if they exist
+      if (attachmentFiles.length > 0) {
+        attachmentFiles.forEach((file) => {
+          formData.append('attachment_files', file);
+        });
+      }
+
+      // Use the memoService instead of direct axios call
+      const response = await memosService.createMemo(formData);
+
+      // Keep the same success handling
+      setNewMemoId(response.id);
+      setShowSuccessDialog(true);
+      toast.success('Memo registrado exitosamente');
 
     } catch (error) {
+      // Keep the same error handling
       console.error('Error creating memo:', error);
-      toast({
-        title: "Error al registrar memo",
-        description: error.response?.data?.error || "Ocurrió un error al crear el memo",
-        variant: "destructive",
-      })
+      toast.error(error.response?.data?.error || 'Error al registrar el memo');
     }
   };
 
@@ -202,12 +169,7 @@ export const RegisterMemoPage = () => {
   };
 
   const formatTime = (hour, minute) => {
-    const hourInt = parseInt(hour, 10);
-    const minuteInt = parseInt(minute, 10);
-    const period = hourInt >= 12 ? 'PM' : 'AM';
-    const formattedHour = hourInt % 12 === 0 ? 12 : hourInt % 12;
-    const formattedMinute = minuteInt < 10 ? `0${minuteInt}` : minuteInt;
-    return `${formattedHour}:${formattedMinute} ${period}`;
+    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
   };
 
   // Watch the hour value to determine AM or PM
@@ -230,7 +192,6 @@ export const RegisterMemoPage = () => {
       reception_images: [],
       attachment_files: [],
       id: "",
-      instruction: "",
       name: "",
       observation: "",
       officeIds: [],
@@ -243,6 +204,7 @@ export const RegisterMemoPage = () => {
     });
     setReceptionFiles([]);
     setAttachmentFiles([]);
+    setSelectedFiles([]);
   };
 
   return (
@@ -478,34 +440,6 @@ export const RegisterMemoPage = () => {
                       </div>
                       <FormDescription>
                         Seleccione las gerencias relacionadas al asunto del oficio.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="instruction"
-                  render={({ field }) => (
-                    <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="text-lg primary-text">INSTRUCCIÓN PRE - VP <span className="text-red-500 text-xl">*</span></FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
-                        >
-                          {instructionOptions.map((option) => (
-                            <div className="flex items-center space-x-2" key={option.id}>
-                              <RadioGroupItem value={option.id} id={option.id} />
-                              <Label htmlFor={option.id} className="text-xs">{option.label.toUpperCase()}</Label>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </FormControl>
-                      <FormDescription>
-                        Seleccione la instrucción emanada desde Presidencia o Vicepresidencia.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

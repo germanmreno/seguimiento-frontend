@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
 import { useViewTransition } from '../hooks/useViewTransition';
+import { NotificationBell } from '../components/custom/NotificationBell';
+import { User } from 'lucide-react';
 
 export const NavBar = () => {
   const navigate = useNavigate();
@@ -49,21 +51,25 @@ export const NavBar = () => {
               <img src="/icon_out.png" alt="registro" className="h-[50px]" />
               <span className="primary-text">SALIR</span>
             </Button>
-            <Button
-              variant="transparent"
-              className="flex justify-center items-center p-2"
-            >
-              <img src="/icon_support.png" alt="registro" className="h-[50px]" />
-              <span className="primary-text">SOPORTE</span>
-            </Button>
-            <div className="hidden xl:flex flex-col items-end mr-4">
-              <div className="px-4 py-2 rounded-lg bg-white/10">
-                <p className="text-xs font-semibold primary-text">{user?.firstName.toUpperCase()} {user?.lastName.toUpperCase()}</p>
-                <p className="text-xs primary-text opacity-80">{user?.username}</p>
+            <div className="hidden xl:flex flex-col items-end mr-4 ml-2">
+              <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/10">
+                <div className="flex flex-col items-end">
+                  <p className="text-xs font-semibold primary-text">
+                    {user?.firstName.toUpperCase()} {user?.lastName.toUpperCase()}
+                  </p>
+                  <p className="text-xs primary-text opacity-80">
+                    {user?.role === 'ADMIN' ? 'ADMINISTRADOR' : 'USUARIO'}
+                  </p>
+                  <p className="text-[10px] primary-text opacity-60">
+                    {user?.username}
+                  </p>
+                </div>
+                <div className="bg-white/20 rounded-full p-2">
+                  <User className="h-6 w-6 text-white/80" />
+                </div>
               </div>
             </div>
-          </div>
-          <div className="flex items-center">
+            <NotificationBell />
             <div className="h-[90px] hidden xl:inline-block min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
             <img src="/logo_batalla.png" alt="logo cvm" className="h-[90px] mx-4 xl:mr-11 hidden xl:block" />
           </div>

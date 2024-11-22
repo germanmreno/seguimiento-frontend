@@ -6,9 +6,11 @@ import { MainPage, LoginPage, RegisterMemoPage, MemoTablePage } from './pages'
 import { CreateForumPage } from './pages/CreateForumPage'
 import { ForumPage } from './pages/ForumPage'
 import { CheckForumPage } from './pages/CheckForumPage'
+import { AssignInstructionPage } from './pages/AssignInstructionPage'
 import { AuthProvider } from './contexts/AuthContext'
 import { PrivateRouter } from './components/PrivateRouter'
 import { ForumsPage } from './pages/ForumsPage'
+import { AdministrationPanel } from './pages/AdministrationPanel'
 
 const router = createBrowserRouter([
   {
@@ -31,6 +33,10 @@ const router = createBrowserRouter([
         element: <RegisterMemoPage />
       },
       {
+        path: "/memos/:id/assign-instruction",
+        element: <AssignInstructionPage />
+      },
+      {
         path: "/create-forum/:id",
         element: <CreateForumPage />
       },
@@ -45,6 +51,10 @@ const router = createBrowserRouter([
       {
         path: "/forums",
         element: <ForumsPage />
+      },
+      {
+        path: "/admin",
+        element: <AdministrationPanel />
       }
     ]
   },
@@ -54,7 +64,7 @@ const router = createBrowserRouter([
   }
 ]);
 
-const App = () => (
+export const App = () => (
   <StrictMode>
     <AuthProvider>
       <RouterProvider router={router} />

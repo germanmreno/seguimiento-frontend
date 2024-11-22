@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
 import axios from "axios";
 import { cn } from "@/lib/utils"
 
@@ -59,28 +58,40 @@ const SortedIcon = ({ isSorted = "asc" }) => {
 
 export const columns = ({ navigate, toast, setRefresh }) => [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        className="bg-white"
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        className="bg-white"
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
+    accessorKey: "instruction_status",
+    header: ({ column }) => {
+      return (
+        <div className="text-center">
+          <Button
+            className="bg-transparent hover:bg-green-700/80"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Instrucción
+            <SortedIcon isSorted={column.getIsSorted()} />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const status = row.original.instruction_status;
+      const instruction = row.original.instruction;
+
+      return (
+        <div className="flex flex-col items-center gap-0.5 py-1">
+          <Badge
+            variant={status === 'PENDING' ? 'pending' : 'completed'}
+            className="w-fit text-xs"
+          >
+            {status === 'PENDING' ? 'Pendiente' : 'Asignada'}
+          </Badge>
+          {status === 'ASSIGNED' && instruction && (
+            <span className="text-xs text-gray-600 font-medium truncate max-w-[180px] text-center">
+              {instruction}
+            </span>
+          )}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "id",
@@ -137,19 +148,24 @@ export const columns = ({ navigate, toast, setRefresh }) => [
             className="bg-transparent hover:bg-green-700/80"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            Gerencia u Oficina
+            Oficinas
             <SortedIcon isSorted={column.getIsSorted()} />
           </Button>
         </div>
-
       );
     },
     cell: ({ row }) => {
       const offices = row.original.offices;
       return (
-        <div className="text-center max-w-[250px]">
-          {offices.map((office, index) => (
-            <div key={index}>{office.office.name}</div>
+        <div className="flex flex-wrap gap-1 justify-center">
+          {offices.map((officeRel) => (
+            <Badge
+              key={officeRel.office.id}
+              variant="secondary"
+              className="text-xs"
+            >
+              {officeRel.office.name}
+            </Badge>
           ))}
         </div>
       );
@@ -375,6 +391,7 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       const [isLoading, setIsLoading] = useState(true);
       const id = row.getValue("id");
       const status = row.getValue("status");
+      const instructionStatus = row.original.instruction_status;
 
       useEffect(() => {
         const checkForumStatus = async () => {
@@ -466,6 +483,17 @@ export const columns = ({ navigate, toast, setRefresh }) => [
             <DropdownMenuItem>
               Editar registro
             </DropdownMenuItem>
+            {instructionStatus === 'PENDING' && (
+              <DropdownMenuItem
+                onClick={() => navigate(`/memos/${id}/assign-instruction`)}
+                className="text-blue-600 hover:text-blue-700"
+              >
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span>Asignar Instrucción</span>
+                </div>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       );

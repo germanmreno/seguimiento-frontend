@@ -4,9 +4,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "../components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useNavigate, Navigate } from "react-router-dom";
-import { AlertCircle, Loader2, CheckCircle2, XCircle } from "lucide-react";
-import axios from "axios";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useAuth } from '../contexts/AuthContext';
+import { authService } from '@/services/auth.service';
 
 export const LoginPage = () => {
   const { user, login } = useAuth();
@@ -26,17 +26,8 @@ export const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:3000/auth/login',
-        JSON.stringify({ username, password }),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        }
-      );
+      const { token, user } = await authService.login(username, password);
 
-      const { token, user } = response.data;
       login(user, token);
       navigate('/home', {
         state: {
