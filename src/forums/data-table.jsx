@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { memosService } from "@/services/memos.service";
 
 import {
   flexRender,
@@ -22,27 +23,29 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useNavigate } from "react-router-dom"
+import { FilePlus } from "lucide-react"
 
-export function DataTable({ columns = [], data = [] }) {
+export function DataTable({ columns = [], data = [], onRefresh }) {
 
   const [sorting, setSorting] = useState([])
   const [columnFilters, setColumnFilters] = useState([])
   const [currentStatus, setCurrentStatus] = useState('all');
 
-  const handleStatusChange = (status = "") => {
+  const handleStatusChange = async (status = "") => {
     if (status === 'all') {
       table.getColumn('status')?.setFilterValue(undefined);
       setCurrentStatus('all');
       return;
     }
 
-    const formatStatus = {
-      PENDING: "En proceso",
-      COMPLETED: "Finalizado"
-    }[status]
-
     setCurrentStatus(status);
-    table.getColumn('status')?.setFilterValue(status === 'all' ? '' : status);
+    table.getColumn('status')?.setFilterValue(status);
+  };
+
+  const handleSearch = (event) => {
+    setCurrentStatus('all');
+    table.getColumn('status')?.setFilterValue(undefined);
+    table.getColumn('name')?.setFilterValue(event.target.value);
   };
 
   const navigate = useNavigate();
@@ -69,13 +72,8 @@ export function DataTable({ columns = [], data = [] }) {
           <Input
             placeholder='Filtrar por...'
             value={(table.getColumn('name')?.getFilterValue()) ?? ''}
-            onChange={(event) => {
-              setCurrentStatus('all');
-              table.getColumn('status')?.setFilterValue(undefined);
-              table.getColumn('name')?.setFilterValue(event.target.value);
-
-            }}
-            className='max-w-sm bg-white '
+            onChange={handleSearch}
+            className='max-w-sm bg-white'
           />
           <Select value={currentStatus} onValueChange={handleStatusChange}>
             <SelectTrigger className='w-[180px] ml-2 bg-white border-2'>
@@ -96,8 +94,8 @@ export function DataTable({ columns = [], data = [] }) {
           className="flex flex-row items-center justify-center h-30px p-4 py-6 rounded-full bg-primary-green transition-colors hover:bg-emerald-600/80"
           onClick={() => navigate("/register-memo")}
         >
-          <img src="/new_memo.png" alt="registro" width="40px" />
-          <span className="primary-text text-sm ml-2 text-slate-100">Registrar <br />nuevo oficio</span>
+          <FilePlus className="text-white w-6" />
+          <span className="primary-text text-sm ml-2 text-slate-100">Registrar nuevo oficio</span>
         </Button></div>
 
       </div>

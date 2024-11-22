@@ -75,4 +75,5 @@ export const attachedOptions = [
   { id: 'PENDRIVE', label: 'Pendrive' },
   { id: 'CARPETA', label: 'Carpeta' },
   { id: 'IMPRESO', label: 'Anexo Impreso' },
+  { id: 'OTHER', label: 'Otro' },
 ];

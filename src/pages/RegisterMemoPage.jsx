@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { memo, useState, useEffect } from "react"
 import { format } from "date-fns"
 import { useForm, Controller } from "react-hook-form"
 import { Layout } from "../layout"
@@ -23,28 +23,33 @@ import { Calendar } from "../components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { Badge } from "../components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group"
-import { attachedOptions, gerencyOptions, instructionOptions, receptionOptions, responseOptions, urgencyOptions } from "../options/formOptions"
-import ImageUpload from "@/components/custom/image-upload"
+import { attachedOptions, gerencyOptions, receptionOptions, responseOptions, urgencyOptions } from "../options/formOptions"
+
+import { CalendarIcon, FileImage, FileText } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import { CalendarIcon, File, FileImage } from "lucide-react"
-import axios from "axios"
-import { useNavigate } from "react-router-dom"
+import { CheckCircle2 } from "lucide-react"
+import { memosService } from "@/services/memos.service"
 
 const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
 const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'))
 
 const formSchema = z.object({
   applicant: z.string().min(2, "El solicitante es requerido"),
-  attachment: z.array(z.string()).min(1, "Debe indicar si posee o no anexos"),
+  attachment_type: z.array(z.string()).min(1, "Debe indicar si posee o no anexos"),
+  reception_images: z
+    .array(z.any())
+    .min(1, "Debe adjuntar al menos una imagen de recepción"),
+  attachment_files: z.array(z.any()).optional(),
   id: z.string().min(5, "El número de oficio es requerido"),
-  instruction: z.string().min(1, "Es requerido saber si necesita respuesta"),
   name: z.string().min(2, "Asunto de oficio es requerido"),
   observation: z.string().min(1, "Asunto de oficio es requerido"),
   officeIds: z.array(z.string()).min(1, "Debe seleccionar al menos una oficina"),
@@ -62,20 +67,23 @@ const formSchema = z.object({
 })
 
 export const RegisterMemoPage = () => {
-
   const navigate = useNavigate()
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [newMemoId, setNewMemoId] = useState(null)
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [receptionFiles, setReceptionFiles] = useState([]);
+  const [attachmentFiles, setAttachmentFiles] = useState([]);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       applicant: "",
-      attachment: [],
+      attachment_type: [],
+      reception_images: [],
+      attachment_files: [],
       id: "",
-      image: [],
-      instruction: "",
       name: "",
       observation: "",
       officeIds: [],
@@ -90,48 +98,114 @@ export const RegisterMemoPage = () => {
 
   const { watch, control } = form;
 
+  // Reception Images Handler
+  const handleReceptionFiles = (e) => {
+    const files = Array.from(e.target.files);
+    setReceptionFiles(files);
+    form.setValue('reception_images', files);
+  };
+
+  // Attachment Files Handler
+  const handleAttachmentFiles = (e) => {
+    const files = Array.from(e.target.files);
+    setAttachmentFiles(files);
+    form.setValue('attachment_files', files);
+  };
+
   const onSubmit = async (data) => {
-
-    const formattedTime = formatTime(data.receptionHour, data.receptionMinute);
-    // const formattedDate = format(data.reception_date, "dd/MM/yy")
-
-    delete data.receptionMinute;
-    delete data.receptionHour;
-
-    data.reception_hour = formattedTime;
-    // data.reception_date = formattedDate;
-
-    console.log('Form submitted:', { ...data });
-
     try {
-      const response = await axios.post('http://localhost:3000/memos', data);
-      console.log('Memo created:', response.data);
-      navigate("/memos")
+      const formData = new FormData();
+
+      // Format the reception hour
+      const formattedHour = formatTime(data.receptionHour, data.receptionMinute);
+
+      // Append basic form fields individually
+      formData.append('id', data.id);
+      formData.append('name', data.name);
+      formData.append('applicant', data.applicant);
+      formData.append('reception_method', data.reception_method);
+      formData.append('reception_date', data.reception_date.toISOString());
+      formData.append('reception_hour', formattedHour);
+      formData.append('response_require', data.response_require);
+      formData.append('observation', data.observation);
+      formData.append('status', data.status);
+      formData.append('urgency', data.urgency);
+
+      // Handle arrays
+      formData.append('attachment_type', JSON.stringify(data.attachment_type));
+      formData.append('officeIds', JSON.stringify(data.officeIds));
+
+      // Append reception images
+      if (receptionFiles.length > 0) {
+        receptionFiles.forEach((file) => {
+          formData.append('reception_images', file);
+        });
+      }
+
+      // Append attachment files if they exist
+      if (attachmentFiles.length > 0) {
+        attachmentFiles.forEach((file) => {
+          formData.append('attachment_files', file);
+        });
+      }
+
+      // Use the memoService instead of direct axios call
+      const response = await memosService.createMemo(formData);
+
+      // Keep the same success handling
+      setNewMemoId(response.id);
+      setShowSuccessDialog(true);
+      toast.success('Memo registrado exitosamente');
 
     } catch (error) {
+      // Keep the same error handling
       console.error('Error creating memo:', error);
+      toast.error(error.response?.data?.error || 'Error al registrar el memo');
     }
-    // Handle form submission logic here
-
-  }
+  };
 
   const handleFileChange = (event) => {
     setSelectedFiles(Array.from(event.target.files));
   };
 
   const formatTime = (hour, minute) => {
-    const hourInt = parseInt(hour, 10);
-    const minuteInt = parseInt(minute, 10);
-    const period = hourInt >= 12 ? 'PM' : 'AM';
-    const formattedHour = hourInt % 12 === 0 ? 12 : hourInt % 12;
-    const formattedMinute = minuteInt < 10 ? `0${minuteInt}` : minuteInt;
-    return `${formattedHour}:${formattedMinute} ${period}`;
+    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
   };
 
   // Watch the hour value to determine AM or PM
   const selectedHour = watch('receptionHour');
   const attachments = watch('attachment');
   const period = selectedHour && parseInt(selectedHour, 10) >= 12 ? 'PM' : 'AM';
+
+  useEffect(() => {
+    if (form.watch('attachment_type').length > 0 &&
+      form.watch('attachment_type').includes('NO')) {
+      setAttachmentFiles([]);
+    }
+  }, [form.watch('attachment_type')]);
+
+  // Add this function to handle form reset
+  const resetForm = () => {
+    form.reset({
+      applicant: "",
+      attachment_type: [],
+      reception_images: [],
+      attachment_files: [],
+      id: "",
+      name: "",
+      observation: "",
+      officeIds: [],
+      reception_method: "",
+      receptionHour: "",
+      receptionMinute: "",
+      response_require: "",
+      status: "PENDING",
+      urgency: "NORMAL"
+    });
+    setReceptionFiles([]);
+    setAttachmentFiles([]);
+    setSelectedFiles([]);
+  };
 
   return (
 
@@ -374,34 +448,6 @@ export const RegisterMemoPage = () => {
 
                 <FormField
                   control={form.control}
-                  name="instruction"
-                  render={({ field }) => (
-                    <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="text-lg primary-text">INSTRUCCIÓN PRE - VP <span className="text-red-500 text-xl">*</span></FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
-                        >
-                          {instructionOptions.map((option) => (
-                            <div className="flex items-center space-x-2" key={option.id}>
-                              <RadioGroupItem value={option.id} id={option.id} />
-                              <Label htmlFor={option.id} className="text-xs">{option.label.toUpperCase()}</Label>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </FormControl>
-                      <FormDescription>
-                        Seleccione la instrucción emanada desde Presidencia o Vicepresidencia.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
                   name="response_require"
                   render={({ field }) => (
                     <FormItem className="space-y-4 col-span-full">
@@ -458,33 +504,47 @@ export const RegisterMemoPage = () => {
                   )}
                 />
 
-                <Controller
-                  name="attachment"
-                  control={control}
+                <FormField
+                  control={form.control}
+                  name="reception_images"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel className="text-lg primary-text">
+                        IMAGEN(ES) DE RECEPCIÓN <span className="text-red-500 text-xl">*</span>
+                      </FormLabel>
                       <FormControl>
-                        <div>
-                          <FormLabel className="text-lg primary-text">IMAGEN(ES) DE RECEPCIÓN <span className="text-red-500 text-xl">*</span></FormLabel>
-                          <div className="w-full flex justify-center mt-2">
-                            <input
-                              type="file"
-                              multiple
-                              onChange={(e) => {
-                                handleFileChange(e);
-                                field.onChange(Array.from(e.target.files));
-                              }}
-                              className="hidden"
-                              id="file-upload"
-                            />
-                            <label
-                              htmlFor="file-upload"
-                              className="flex items-center max-w-80 justify-center px-4 py-2 bg-blue-400 text-white rounded cursor-pointer hover:bg-blue-600"
-                            >
-                              <FileImage size={24} className="mr-2" />
-                              <span>Adjuntar archivos</span>
-                            </label>
-                          </div>
+                        <div className="w-full flex flex-col gap-4">
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*,.pdf"
+                            onChange={handleReceptionFiles}
+                            className="hidden"
+                            id="reception-upload"
+                          />
+                          <label
+                            htmlFor="reception-upload"
+                            className="flex items-center max-w-80 justify-center px-4 py-2 bg-blue-400 text-white rounded cursor-pointer hover:bg-blue-600"
+                          >
+                            <FileImage size={24} className="mr-2" />
+                            <span>Adjuntar comprobante de recepción</span>
+                          </label>
+                          {receptionFiles.length > 0 && (
+                            <div className="mt-2">
+                              <h4 className="text-sm font-medium">Archivos seleccionados:</h4>
+                              <ul className="list-disc list-inside">
+                                {receptionFiles.map((file, index) => (
+                                  <li key={index} className="flex items-center gap-2 text-sm">
+                                    {file.type === 'application/pdf' ?
+                                      <FileText className="h-4 w-4" /> :
+                                      <FileImage className="h-4 w-4" />
+                                    }
+                                    {file.name}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                         </div>
                       </FormControl>
                       <FormDescription>
@@ -495,105 +555,90 @@ export const RegisterMemoPage = () => {
                   )}
                 />
 
-                {/* Display selected file names */}
-                <div className="mt-4">
-                  {selectedFiles.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium">Archivos seleccionados:</h4>
-                      <ul className="list-disc list-inside">
-                        {selectedFiles.map((file, index) => (
-                          <li key={index} className="text-sm">{file.name}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-
                 <FormField
                   control={form.control}
-                  name="attachment"
-                  render={() => (
+                  name="attachment_type"
+                  render={({ field }) => (
                     <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="text-lg primary-text">ANEXO(S) <span className="text-red-500 text-xl">*</span></FormLabel>
+                      <FormLabel className="text-lg primary-text">
+                        ANEXO(S) <span className="text-red-500 text-xl">*</span>
+                      </FormLabel>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {attachedOptions.map((option) => (
                           <FormField
                             key={option.id}
                             control={form.control}
-                            name="attachment"
-                            render={({ field }) => {
-                              const isNoPosee = option.id.toUpperCase() === "NO";
-                              const isNoPoseeSelected = field.value?.includes("NO");
-                              return (
-                                <FormItem
-                                  key={option.id}
-                                  className="flex flex-row items-start space-x-3 space-y-0"
-                                >
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(option.id)}
-                                      disabled={!isNoPosee && isNoPoseeSelected}
-                                      onCheckedChange={(checked) => {
-                                        if (isNoPosee) {
-                                          // If "NO POSEE" is checked, clear all other values
-                                          return checked
-                                            ? field.onChange([option.id])
-                                            : field.onChange([]);
-                                        } else {
-                                          // If any other option is checked, remove "NO POSEE" if it exists
-                                          const newValue = checked
-                                            ? [...field.value.filter((id) => id !== "NO"), option.id]
-                                            : field.value.filter((value) => value !== option.id);
-                                          return field.onChange(newValue);
-                                        }
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="text-xs">
-                                    {option.label.toUpperCase()}
-                                  </FormLabel>
-                                </FormItem>
-                              )
-                            }}
+                            name="attachment_type"
+                            render={({ field }) => (
+                              <FormItem
+                                key={option.id}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(option.id)}
+                                    onCheckedChange={(checked) => {
+                                      const updatedValue = checked
+                                        ? [...field.value, option.id]
+                                        : field.value?.filter((value) => value !== option.id);
+                                      field.onChange(updatedValue);
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm">{option.label}</FormLabel>
+                              </FormItem>
+                            )}
                           />
                         ))}
                       </div>
-                      <FormDescription>
-                        Indique si el oficio trajo consigo anexos añadidos o no.
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {attachments.length === 0 && (
-                  <div className="space-y-4 col-span-full">
-                    <Label className="text-lg primary-text">AÑADIR ANEXO</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                        <DialogTrigger asChild>
-                          <Button className="rounded-full shadow" variant="outline">
-                            Adjuntar archivos
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                          <DialogHeader>
-                            <DialogTitle className="text-center">Subir archivos</DialogTitle>
-                          </DialogHeader>
-                          <div>
-                            {selectedFiles.map((file, index) => (
-                              <div key={index} className="flex items-center space-x-2">
-                                <File size={24} />
-                                <span>{file.name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </div>
-                )}
+                {form.watch('attachment_type').length > 0 &&
+                  !form.watch('attachment_type').includes('NO') && (
+                    <FormField
+                      control={form.control}
+                      name="attachment_files"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-lg primary-text">
+                            ARCHIVOS DE ANEXOS
+                          </FormLabel>
+                          <FormControl>
+                            <div className="w-full flex flex-col gap-4">
+                              <input
+                                type="file"
+                                multiple
+                                onChange={handleAttachmentFiles}
+                                className="hidden"
+                                id="attachment-upload"
+                              />
+                              <label
+                                htmlFor="attachment-upload"
+                                className="flex items-center max-w-80 justify-center px-4 py-2 bg-blue-400 text-white rounded cursor-pointer hover:bg-blue-600"
+                              >
+                                <FileImage size={24} className="mr-2" />
+                                <span>Adjuntar anexos</span>
+                              </label>
+                              {attachmentFiles.length > 0 && (
+                                <div className="mt-2">
+                                  <h4 className="text-sm font-medium">Anexos seleccionados:</h4>
+                                  <ul className="list-disc list-inside">
+                                    {attachmentFiles.map((file, index) => (
+                                      <li key={index} className="text-sm">{file.name}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <FormField
@@ -625,6 +670,42 @@ export const RegisterMemoPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle2 className="h-6 w-6" />
+              ¡Memo Registrado Exitosamente!
+            </DialogTitle>
+            <DialogDescription>
+              El memo <span className="font-semibold">{newMemoId}</span> ha sido creado correctamente.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowSuccessDialog(false);
+                resetForm();
+              }}
+            >
+              Registrar Otro Memo
+            </Button>
+            <Button
+              type="button"
+              className="bg-primary-green"
+              onClick={() => {
+                setShowSuccessDialog(false)
+                navigate("/memos")
+              }}
+            >
+              Ver Lista de Memos
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   )
 }
