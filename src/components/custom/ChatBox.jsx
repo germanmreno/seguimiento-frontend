@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChatMessage } from './ChatMessage'
 import { Input } from "@/components/ui/input"
@@ -9,6 +8,7 @@ import { Upload, FileIcon, X, Loader2, RefreshCw, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from "@/components/ui/badge"
 import { toast } from 'sonner'
+import { forumsService } from '@/services/forums.service'
 
 export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }) => {
   const [messages, setMessages] = useState([])
@@ -38,13 +38,13 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
   const fetchMessages = async () => {
     setIsRefreshing(true)
     try {
-      const response = await axios.get(`http://localhost:3000/forums/${forumId}/messages`)
-      setMessages(response.data)
+      const messages = await forumsService.getForumMessages(forumId)
+      setMessages(messages)
     } catch (error) {
       console.error('Failed to fetch messages:', error)
+      toast.error('Error al cargar los mensajes')
     } finally {
       setIsRefreshing(false)
-      // Scroll after messages are loaded
       setTimeout(scrollToBottom, 100)
     }
   }
@@ -67,15 +67,7 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
         formData.append('file', selectedFile)
       }
 
-      await axios.post(
-        `http://localhost:3000/forums/${forumId}/messages`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      )
+      await forumsService.sendForumMessage(forumId, formData)
 
       setNewMessage('')
       setSelectedFile(null)
@@ -94,18 +86,15 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
 
   const handleDeleteMessage = async (messageId) => {
     try {
-      // Call the parent's onDeleteMessage function
-      await onDeleteMessage(messageId);
-
-      // After successful deletion, fetch messages again
-      await fetchMessages();
-
-      // Scroll to bottom after refreshing messages
-      setTimeout(scrollToBottom, 100);
+      await forumsService.deleteForumMessage(forumId, messageId, currentUserId)
+      await onDeleteMessage(messageId)
+      await fetchMessages()
+      setTimeout(scrollToBottom, 100)
     } catch (error) {
-      console.error('Error handling message deletion:', error);
+      console.error('Error handling message deletion:', error)
+      toast.error('Error al eliminar el mensaje')
     }
-  };
+  }
 
   // Initial fetch and scroll
   useEffect(() => {

@@ -3,7 +3,7 @@ import { api } from './api';
 export const filesService = {
   // Get file URL
   getFileUrl: (filePath) => {
-    return `${api.defaults.baseURL}/${filePath}`;
+    return `http://localhost:3005/${filePath}`;
   },
 
   // Upload file

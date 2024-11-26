@@ -19,7 +19,7 @@ export const forumsService = {
 
   getAllForumsWithMessages: async (userData) => {
     try {
-      const memosResponse = await api.get('http://localhost:3000/memos', {
+      const memosResponse = await api.get('/memos', {
         params: {
           office_id: userData.office_id,
           role: userData.role,
@@ -131,14 +131,13 @@ export const forumsService = {
 
   deleteForumMessage: async (forumId, messageId, userId) => {
     try {
-      const response = await api.delete(
-        `/forums/${forumId}/messages/${messageId}`,
-        { data: { user_id: userId } }
-      );
-      return response.data;
+      await api.delete(`/forums/${forumId}/messages/${messageId}`, {
+        data: { user_id: userId },
+      });
+      return { success: true, message: 'Mensaje eliminado correctamente' };
     } catch (error) {
       console.error('Error deleting message:', error);
-      throw error;
+      throw error.response?.data || { error: 'Error al eliminar el mensaje' };
     }
   },
 
@@ -148,6 +147,32 @@ export const forumsService = {
       return response.data;
     } catch (error) {
       console.error('Error creating forum:', error);
+      throw error;
+    }
+  },
+
+  sendForumMessage: async (forumId, formData) => {
+    try {
+      const response = await api.post(`/forums/${forumId}/messages`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    }
+  },
+
+  updateForumStatus: async (forumId, newStatus) => {
+    try {
+      const response = await api.patch(`/forums/${forumId}/status`, {
+        status: newStatus,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating forum status:', error);
       throw error;
     }
   },

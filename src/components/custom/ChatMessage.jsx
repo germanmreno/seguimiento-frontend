@@ -40,6 +40,7 @@ export const ChatMessage = ({ message = {}, onDelete, currentUserId }) => {
 
   const FilePreview = ({ fileUrl, fileName }) => {
     const Icon = getFileIcon(fileName);
+    const fullFileUrl = `http://localhost:3005${fileUrl}`
 
     if (isImageFile(fileName)) {
       return (
@@ -47,7 +48,7 @@ export const ChatMessage = ({ message = {}, onDelete, currentUserId }) => {
           <DialogTrigger asChild>
             <div className="cursor-pointer">
               <img
-                src={`http://localhost:3000${fileUrl}`}
+                src={fullFileUrl}
                 alt={fileName}
                 className="max-h-32 rounded-md object-cover hover:opacity-90 transition-opacity"
               />
@@ -55,7 +56,7 @@ export const ChatMessage = ({ message = {}, onDelete, currentUserId }) => {
           </DialogTrigger>
           <DialogContent className="max-w-3xl">
             <img
-              src={`http://localhost:3000${fileUrl}`}
+              src={fullFileUrl}
               alt={fileName}
               className="w-full h-auto rounded-md"
             />
@@ -84,7 +85,7 @@ export const ChatMessage = ({ message = {}, onDelete, currentUserId }) => {
           </DialogTrigger>
           <DialogContent className="max-w-4xl h-[80vh]">
             <iframe
-              src={`http://localhost:3000${fileUrl}`}
+              src={fullFileUrl}
               className="w-full h-full rounded-md"
               title={fileName}
             />
@@ -95,7 +96,7 @@ export const ChatMessage = ({ message = {}, onDelete, currentUserId }) => {
 
     return (
       <a
-        href={`http://localhost:3000${fileUrl}`}
+        href={fullFileUrl}
         target="_blank"
         rel="noopener noreferrer"
         className={cn(

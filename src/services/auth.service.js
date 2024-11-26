@@ -56,13 +56,7 @@ export const authService = {
 
   getOffices: async () => {
     try {
-      const response = await api.get('/offices', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-      });
+      const response = await api.get('/offices');
       return response.data;
     } catch (error) {
       console.error('Error fetching offices:', error);

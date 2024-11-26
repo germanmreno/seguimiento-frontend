@@ -14,8 +14,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import axios from "axios";
+import { memosService } from '@/services/memos.service';
 import { cn } from "@/lib/utils"
+import { forumsService } from '@/services/forums.service';
 
 const myCustomFilterFn = (row, columnId, filterValue) => {
   const lowerFilterValue = filterValue.toLowerCase();
@@ -101,7 +102,7 @@ export const columns = ({ navigate, toast, setRefresh }) => [
           className="bg-transparent hover:bg-green-700/80"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Nº de Memo
+          N�� de Memo
           <SortedIcon isSorted={column.getIsSorted()} />
         </Button>
       );
@@ -302,14 +303,11 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       }
 
       const handleViewImage = (image) => {
-        // For PDFs, open in new tab
         if (image.isPdf) {
-          window.open(`http://localhost:3000/${image.path}`, '_blank');
+          window.open(`http://localhost:3005/${image.path}`, '_blank');
           return;
         }
-
-        // For images, create a modal or new window to view
-        const imageUrl = `http://localhost:3000/${image.path}`;
+        const imageUrl = `http://localhost:3005/${image.path}`;
         window.open(imageUrl, '_blank', 'width=800,height=600');
       };
 
@@ -353,10 +351,10 @@ export const columns = ({ navigate, toast, setRefresh }) => [
 
       const handleViewFile = (file) => {
         if (file.type === 'application/pdf') {
-          window.open(`http://localhost:3000/${file.path}`, '_blank');
+          window.open(`http://localhost:3005/${file.path}`, '_blank');
           return;
         }
-        const fileUrl = `http://localhost:3000/${file.path}`;
+        const fileUrl = `http://localhost:3005/${file.path}`;
         window.open(fileUrl, '_blank', 'width=800,height=600');
       };
 
@@ -396,10 +394,10 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       useEffect(() => {
         const checkForumStatus = async () => {
           try {
-            const response = await axios.get(`http://localhost:3000/forums/check-existence/${id}`);
-            if (response.data.exists) {
-              setForumStatus(response.data.status);
-              setForumId(response.data.id);
+            const response = await forumsService.checkForumExistence(id);
+            if (response.exists) {
+              setForumStatus(response.status);
+              setForumId(response.id);
             }
             setIsLoading(false);
           } catch (error) {
@@ -414,7 +412,7 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       const handleChangeStatus = async () => {
         const newStatus = status === "PENDING" ? "COMPLETED" : "PENDING";
         try {
-          await axios.patch(`http://localhost:3000/memos/${id}/status`, { status: newStatus });
+          await memosService.updateMemoStatus(id, newStatus);
           toast.success(`${id}: Status actualizado a ${newStatus === "COMPLETED" ? "Finalizado" : "En proceso"}`);
           setRefresh(prev => !prev);
         } catch (error) {
@@ -431,7 +429,7 @@ export const columns = ({ navigate, toast, setRefresh }) => [
 
         try {
           const newStatus = forumStatus === 'OPEN' ? 'CLOSED' : 'OPEN';
-          await axios.patch(`http://localhost:3000/forums/${forumId}/status`, { status: newStatus });
+          await forumsService.updateForumStatus(forumId, newStatus);
           setForumStatus(newStatus);
           toast.success(`Foro ${newStatus === 'OPEN' ? 'abierto' : 'cerrado'} exitosamente`);
           setRefresh(prev => !prev);
