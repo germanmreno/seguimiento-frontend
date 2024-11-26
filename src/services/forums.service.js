@@ -19,49 +19,47 @@ export const forumsService = {
 
   getAllForumsWithMessages: async (userData) => {
     try {
-      const memosResponse = await api.get('/memos', {
-        params: {
-          office_id: userData.office_id,
-          role: userData.role,
-        },
-      });
+      const hasFullAccess =
+        userData.role === 'ADMIN' ||
+        userData.office_id === '110' || // SEGUIMIENTO Y CONTROL
+        userData.office_id === '101' || // VICEPRESIDENCIA
+        userData.office_id === '100'; // PRESIDENCIA
 
+      const params = hasFullAccess
+        ? { role: userData.role }
+        : {
+            office_id: userData.office_id,
+            role: userData.role,
+          };
+
+      const memosResponse = await api.get('/memos', { params });
       const memos = memosResponse.data;
 
-      const forumsPromises = memos
-        .filter((memo) =>
-          memo.offices.some(
-            (mo) =>
-              userData.role === 'ADMIN' || mo.office_id === userData.office_id
-          )
-        )
-        .map(async (memo) => {
-          try {
-            const forumExists = await forumsService.checkForumExistence(
-              memo.id
+      const forumsPromises = memos.map(async (memo) => {
+        try {
+          const forumExists = await forumsService.checkForumExistence(memo.id);
+
+          if (forumExists.exists) {
+            const forum = await forumsService.getForum(forumExists.id);
+            const messages = await forumsService.getForumMessages(
+              forumExists.id
             );
 
-            if (forumExists.exists) {
-              const forum = await forumsService.getForum(forumExists.id);
-              const messages = await forumsService.getForumMessages(
-                forumExists.id
-              );
-
-              return {
-                ...forum,
-                messageCount: messages.length,
-                lastMessageAt:
-                  messages.length > 0
-                    ? messages[messages.length - 1].createdAt
-                    : null,
-              };
-            }
-            return null;
-          } catch (error) {
-            console.error(`Error fetching forum for memo ${memo.id}:`, error);
-            return null;
+            return {
+              ...forum,
+              messageCount: messages.length,
+              lastMessageAt:
+                messages.length > 0
+                  ? messages[messages.length - 1].createdAt
+                  : null,
+            };
           }
-        });
+          return null;
+        } catch (error) {
+          console.error(`Error fetching forum for memo ${memo.id}:`, error);
+          return null;
+        }
+      });
 
       const results = await Promise.all(forumsPromises);
       const validForums = results.filter((forum) => forum !== null);
@@ -141,9 +139,16 @@ export const forumsService = {
     }
   },
 
-  createForum: async (forumData) => {
+  createForum: async (forumData, user) => {
     try {
-      const response = await api.post('/forums', forumData);
+      const response = await api.post('/forums', {
+        ...forumData,
+        user_id: {
+          id: user.id,
+          role: user.role,
+          office_id: user.office_id,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error('Error creating forum:', error);

@@ -9,10 +9,11 @@ import { ChatBox } from "@/components/custom";
 import { urgencyOptions } from "@/options/formOptions";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "sonner";
-import { Lock, Image, FileText } from "lucide-react";
+import { Lock, Image, FileText, Unlock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { forumsService } from "@/services/forums.service";
+import { Button } from "@/components/ui/button";
 
 export const ForumPage = () => {
   const { id } = useParams();
@@ -42,6 +43,25 @@ export const ForumPage = () => {
     fetchForumDetails();
   }, [id]);
 
+  useEffect(() => {
+    // Listen for forum status changes from ChatBox
+    const handleForumStatusChange = (event) => {
+      const { forumId, status } = event.detail;
+      if (forum && forum.id === parseInt(forumId)) {
+        setForum(prev => ({
+          ...prev,
+          status
+        }));
+      }
+    };
+
+    window.addEventListener('forumStatusChanged', handleForumStatusChange);
+
+    return () => {
+      window.removeEventListener('forumStatusChanged', handleForumStatusChange);
+    };
+  }, [forum]);
+
   const handleDeleteMessage = async (messageId) => {
     try {
       await forumsService.deleteForumMessage(id, messageId, user.id);
@@ -56,6 +76,20 @@ export const ForumPage = () => {
     } catch (error) {
       console.error('Failed to delete message:', error);
       toast.error(error.error || 'Error al eliminar el mensaje');
+    }
+  };
+
+  const handleForumStatusChange = async () => {
+    try {
+      const newStatus = forum.status === 'OPEN' ? 'CLOSED' : 'OPEN';
+      await forumsService.updateForumStatus(forum.id, newStatus);
+      setForum(prev => ({
+        ...prev,
+        status: newStatus
+      }));
+      toast.success(`Foro ${newStatus === 'OPEN' ? 'abierto' : 'cerrado'} exitosamente`);
+    } catch (error) {
+      toast.error(error.error || 'Error al actualizar el estado del foro');
     }
   };
 
@@ -90,12 +124,39 @@ export const ForumPage = () => {
                       )}
                     </CardDescription>
                   </div>
-                  {forum.status === 'CLOSED' && (
-                    <div className="flex items-center gap-2 bg-red-500/90 px-4 py-2 rounded-lg">
-                      <Lock className="h-5 w-5" />
-                      <span className="font-medium">Foro Cerrado</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {forum.status === 'CLOSED' && (
+                      <div className="flex items-center gap-2 bg-red-500/90 px-4 py-2 rounded-lg">
+                        <Lock className="h-5 w-5" />
+                        <span className="font-medium">Foro Cerrado</span>
+                      </div>
+                    )}
+                    {user.role === 'ADMIN' && (
+                      <Button
+                        onClick={handleForumStatusChange}
+                        className={cn(
+                          "min-w-[140px] h-10",
+                          forum.status === 'OPEN'
+                            ? "bg-red-500 hover:bg-red-600"
+                            : "bg-emerald-500 hover:bg-emerald-600"
+                        )}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          {forum.status === 'OPEN' ? (
+                            <>
+                              <Lock className="h-4 w-4" />
+                              <span>Cerrar Foro</span>
+                            </>
+                          ) : (
+                            <>
+                              <Unlock className="h-4 w-4" />
+                              <span>Abrir Foro</span>
+                            </>
+                          )}
+                        </div>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardHeader>

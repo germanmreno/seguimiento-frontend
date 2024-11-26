@@ -78,16 +78,14 @@ export const MainPage = () => {
           <h1 className="primary-text text-lg mb-2">Foros</h1>
         </Button>
 
-        {user.role === 'ADMIN' && (
-          <Button
-            variant="outline"
-            className="flex flex-col h-36 w-52 rounded-lg p-1 button-gradient shadow-xl hover:scale-105 transition-transform"
-            onClick={() => handleNavigation("/memos")}
-          >
-            <img src="/button_add.png" alt="registro" className="h-[80px]" />
-            <h2 className="primary-text text-lg mb-2">Oficios</h2>
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          className="flex flex-col h-36 w-72 rounded-lg p-1 button-gradient shadow-xl hover:scale-105 transition-transform"
+          onClick={() => handleNavigation("/memos")}
+        >
+          <img src="/button_add.png" alt="registro" className="h-[80px]" />
+          <h2 className="primary-text text-lg mb-2">Correspondencias</h2>
+        </Button>
 
         {user.role === 'ADMIN' && (
           <Button

@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { forumsService } from '@/services/forums.service';
 import { useState } from "react"
 import { Loader } from "@/components/custom/Loader"
+import { useAuth } from "@/contexts/AuthContext"
 
 const formSchema = z.object({
   title: z.string().min(5, "El título es requerido y debe poseer más de 5 carácteres"),
@@ -30,6 +31,7 @@ export const CreateForumPage = () => {
   const navigate = useNavigate()
   const { id } = useParams()
   const [isLoading, setIsLoading] = useState(false)
+  const { user } = useAuth()
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -49,7 +51,7 @@ export const CreateForumPage = () => {
         createdAt: new Date().toISOString(),
       }
 
-      const response = await forumsService.createForum(forumData)
+      const response = await forumsService.createForum(forumData, user)
 
       if (response) {
         navigate(`/forums/${response.id}`)

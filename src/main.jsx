@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import './index.css'
-import { MainPage, LoginPage, RegisterMemoPage, MemoTablePage } from './pages'
+import { MainPage, LoginPage, RegisterMemoPage } from './pages'
 import { CreateForumPage } from './pages/CreateForumPage'
 import { ForumPage } from './pages/ForumPage'
 import { CheckForumPage } from './pages/CheckForumPage'
@@ -11,6 +11,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import { PrivateRouter } from './components/PrivateRouter'
 import { ForumsPage } from './pages/ForumsPage'
 import { AdministrationPanel } from './pages/AdministrationPanel'
+import { MemoTabs } from './components/admin/MemoTabs'
+import { MemoDetailsPage } from './pages/MemoDetailsPage'
 
 const router = createBrowserRouter([
   {
@@ -26,7 +28,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/memos",
-        element: <MemoTablePage />
+        element: <MemoTabs />
+      },
+      {
+        path: "/memos/:id/details",
+        element: <MemoDetailsPage />,
       },
       {
         path: "/register-memo",

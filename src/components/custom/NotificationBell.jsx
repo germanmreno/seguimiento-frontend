@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, MessageCircle, FileText, MessagesSquare, Trash2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import {
   Popover,
@@ -36,10 +36,25 @@ export const NotificationBell = () => {
     return () => clearInterval(interval);
   }, [user.id]);
 
+  const getNotificationIcon = (notification) => {
+    if (notification.forum_id) {
+      return <MessagesSquare className="h-4 w-4 text-blue-500" />;
+    } else if (notification.memo_id) {
+      return <FileText className="h-4 w-4 text-green-500" />;
+    }
+    return null;
+  };
+
   const handleNotificationClick = async (notification) => {
     try {
       await api.patch(`/notifications/${notification.id}/read`);
-      navigate(`/forums/${notification.forum_id}`);
+
+      if (notification.forum_id) {
+        navigate(`/forums/${notification.forum_id}`);
+      } else if (notification.memo_id) {
+        navigate(`/memos/${notification.memo_id}/details`);
+      }
+
       fetchNotifications();
     } catch (error) {
       console.error('Failed to handle notification:', error);
@@ -60,7 +75,7 @@ export const NotificationBell = () => {
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" className="relative">
-          <Bell className="h-5 w-5 mr-4" />
+          <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 mr-2"
@@ -83,25 +98,31 @@ export const NotificationBell = () => {
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
                   className={`
-                    flex justify-between items-start p-2 rounded-lg cursor-pointer
+                    group flex justify-between items-start p-2 rounded-lg cursor-pointer
                     ${notification.read ? 'bg-gray-50' : 'bg-blue-50'}
                     hover:bg-gray-100 transition-colors
                   `}
                 >
-                  <div>
-                    <p className="text-sm font-medium">{notification.message}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(notification.createdAt).toLocaleString()}
-                    </p>
+                  <div className="flex items-start space-x-3 flex-1">
+                    <div className="mt-1">
+                      {getNotificationIcon(notification)}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{notification.message}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(notification.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => handleDelete(e, notification)}
+                      className="opacity-0 group-hover:opacity-100 hover:bg-red-100 hover:text-red-600"
+                      title="Eliminar notificación"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => handleDelete(e, notification)}
-                    className="opacity-0 group-hover:opacity-100"
-                  >
-                    ×
-                  </Button>
                 </div>
               ))}
             </div>

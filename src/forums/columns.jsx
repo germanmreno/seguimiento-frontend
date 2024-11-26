@@ -1,8 +1,9 @@
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
-import { MoreHorizontal, ArrowUp, ArrowDown, Lock, Unlock, FileImage, Eye, FileText } from "lucide-react"
+import { MoreHorizontal, ArrowUp, ArrowDown, Lock, Unlock, FileImage, Eye, FileText, MessageCircle, Check, RotateCcw, Circle, CheckCircle, Archive } from "lucide-react"
 import { useState, useEffect } from 'react';
+import { useAuth } from "@/contexts/AuthContext";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +13,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { memosService } from '@/services/memos.service';
@@ -57,6 +61,196 @@ const SortedIcon = ({ isSorted = "asc" }) => {
   }
 };
 
+// Create a separate component for the actions cell
+const ActionCell = ({ row, navigate, toast, setRefresh }) => {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { id, status: currentStatus, files, forum } = row.original;
+
+  const canChangeStatus = user.role === 'ADMIN' ||
+    (user.office_id === '110' && user.role === 'USER') ||
+    user.role === 'USER';
+
+  const hasForumAccess = forum?.canAccess;
+  const showForumActions = forum && hasForumAccess;
+
+  const handleForumStatusChange = async () => {
+    if (!forum || !user.role === 'ADMIN') return;
+
+    try {
+      setIsLoading(true);
+      const newStatus = forum.status === 'OPEN' ? 'CLOSED' : 'OPEN';
+      await forumsService.updateForumStatus(forum.id, newStatus);
+
+      toast.success(`Foro ${newStatus === 'OPEN' ? 'abierto' : 'cerrado'} exitosamente`);
+      setRefresh(prev => !prev);
+    } catch (error) {
+      console.error('Error changing forum status:', error);
+      toast.error('Error al cambiar el estado del foro');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    if (!canChangeStatus) {
+      toast.error('No tienes permisos para cambiar el estado del oficio');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await memosService.updateMemoStatus(id, newStatus, user);
+      toast.success('Estado actualizado correctamente');
+      setRefresh(prev => !prev);
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      toast.error(error.response?.data?.error || 'Error al actualizar el estado');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {/* Keep only one Ver Detalles action */}
+        <DropdownMenuItem onClick={() => navigate(`/memos/${id}/details`)} className="hover:bg-blue-50">
+          <div className="flex items-center gap-2 text-blue-600">
+            <Eye className="h-4 w-4" />
+            <span>Ver Detalles</span>
+          </div>
+        </DropdownMenuItem>
+
+        {/* Forum Actions */}
+        {showForumActions ? (
+          <DropdownMenuItem
+            onClick={() => navigate(`/forums/${forum.id}`)}
+            className="hover:bg-emerald-50"
+          >
+            <div className="flex items-center gap-2 text-emerald-600">
+              <MessageCircle className="h-4 w-4" />
+              <span>Ver Foro</span>
+            </div>
+          </DropdownMenuItem>
+        ) : !forum && (
+          <DropdownMenuItem
+            onClick={() => navigate(`/check-forum/${id}`)}
+            className="hover:bg-emerald-50"
+          >
+            <div className="flex items-center gap-2 text-emerald-600">
+              <MessageCircle className="h-4 w-4" />
+              <span>Abrir Foro</span>
+            </div>
+          </DropdownMenuItem>
+        )}
+
+        {/* Status Change Actions */}
+        {canChangeStatus && (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Cambiar Estado</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem
+                disabled={currentStatus === "PENDING"}
+                onClick={() => handleStatusChange('PENDING')}
+              >
+                <Circle className="mr-2 h-4 w-4 text-yellow-500" />
+                Pendiente
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={currentStatus === "COMPLETED"}
+                onClick={() => handleStatusChange('COMPLETED')}
+              >
+                <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                Completado
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={currentStatus === "ARCHIVED"}
+                onClick={() => handleStatusChange('ARCHIVED')}
+              >
+                <Archive className="mr-2 h-4 w-4 text-gray-500" />
+                Archivado
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        )}
+
+        {/* View Files Action */}
+        {files && files.length > 0 && (
+          <DropdownMenuItem onClick={() => handleViewFile(files[0])} className="hover:bg-purple-50">
+            <div className="flex items-center gap-2 text-purple-600">
+              {files[0].type === 'application/pdf' ? (
+                <FileText className="h-4 w-4" />
+              ) : (
+                <FileImage className="h-4 w-4" />
+              )}
+              <span>Ver Archivo</span>
+            </div>
+          </DropdownMenuItem>
+        )}
+
+        {/* Forum Status Action */}
+        {user.role === 'ADMIN' && forum && (
+          <DropdownMenuItem
+            onClick={handleForumStatusChange}
+            disabled={isLoading}
+            className={cn(
+              "hover:bg-opacity-10",
+              forum.status === 'OPEN' ? "hover:bg-red-50" : "hover:bg-emerald-50"
+            )}
+          >
+            <div className={cn(
+              "flex items-center gap-2",
+              forum.status === 'OPEN' ? "text-red-600" : "text-emerald-600"
+            )}>
+              {forum.status === 'OPEN' ? (
+                <>
+                  <Lock className="h-4 w-4" />
+                  <span>Cerrar Foro</span>
+                </>
+              ) : (
+                <>
+                  <Unlock className="h-4 w-4" />
+                  <span>Abrir Foro</span>
+                </>
+              )}
+            </div>
+          </DropdownMenuItem>
+        )}
+
+        {/* Assign Instruction Action */}
+        {(user.role === 'ADMIN' || user.office_id === '101') && (
+          <DropdownMenuItem onClick={() => navigate(`/memos/${id}/assign-instruction`)} className="hover:bg-amber-50">
+            <div className="flex items-center gap-2 text-amber-600">
+              <FileText className="h-4 w-4" />
+              <span>Asignar Instrucción</span>
+            </div>
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+// Add this to your status badge component
+const statusStyles = {
+  PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  COMPLETED: "bg-green-100 text-green-800 border-green-200",
+  ARCHIVED: "bg-gray-100 text-gray-800 border-gray-200" // New archived style
+};
+
+const statusText = {
+  PENDING: "Pendiente",
+  COMPLETED: "Completado",
+  ARCHIVED: "Archivado" // New archived text
+};
+
+// Define columns with the new ActionCell component
 export const columns = ({ navigate, toast, setRefresh }) => [
   {
     accessorKey: "instruction_status",
@@ -102,7 +296,7 @@ export const columns = ({ navigate, toast, setRefresh }) => [
           className="bg-transparent hover:bg-green-700/80"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          N�� de Memo
+          Correspondencia
           <SortedIcon isSorted={column.getIsSorted()} />
         </Button>
       );
@@ -213,19 +407,36 @@ export const columns = ({ navigate, toast, setRefresh }) => [
     },
     cell: ({ row }) => {
       const status = row.getValue("status");
-      const forumStatus = row.original.forumStatus; // We'll need to add this to the memo query
+      const forum = row.original.forum;
 
       return (
         <div className="text-center space-y-1">
-          <Badge variant={status === "PENDING" ? "pending" : "completed"}>
-            &#8226; {status === "PENDING" ? "En proceso" : "Finalizado"}
+          <Badge
+            variant="outline"
+            className={`${statusStyles[status]} border`}
+          >
+            {statusText[status]}
           </Badge>
-          {forumStatus && (
+
+          {/* Forum Status Badge */}
+          {forum ? (
             <Badge
-              variant={forumStatus === "OPEN" ? "outline" : "destructive"}
-              className="text-xs"
+              variant={forum.status === "OPEN" ? "success" : "destructive"}
+              className={cn(
+                "text-xs",
+                forum.status === "OPEN"
+                  ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                  : "bg-red-100 text-red-800 border-red-200"
+              )}
             >
-              Foro {forumStatus === "OPEN" ? "Abierto" : "Cerrado"}
+              Foro {forum.status === "OPEN" ? "Abierto" : "Cerrado"}
+            </Badge>
+          ) : (
+            <Badge
+              variant="secondary"
+              className="text-xs bg-gray-100 text-gray-600 border-gray-200"
+            >
+              Sin Foro
             </Badge>
           )}
         </div>
@@ -303,6 +514,7 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       }
 
       const handleViewImage = (image) => {
+        console.log(image)
         if (image.isPdf) {
           window.open(`http://localhost:3005/${image.path}`, '_blank');
           return;
@@ -350,11 +562,15 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       }
 
       const handleViewFile = (file) => {
+        // Format the path to ensure proper URL structure
+        const formattedPath = file.path.replace(/\\/g, '/');
+        // Add forward slash between base URL and path if needed
+        const fileUrl = `http://localhost:3005/${formattedPath.startsWith('/') ? formattedPath.slice(1) : formattedPath}`;
+
         if (file.type === 'application/pdf') {
-          window.open(`http://localhost:3005/${file.path}`, '_blank');
+          window.open(fileUrl, '_blank');
           return;
         }
-        const fileUrl = `http://localhost:3005/${file.path}`;
         window.open(fileUrl, '_blank', 'width=800,height=600');
       };
 
@@ -382,120 +598,6 @@ export const columns = ({ navigate, toast, setRefresh }) => [
   },
   {
     id: "actions",
-    header: "Acciones",
-    cell: ({ row }) => {
-      const [forumStatus, setForumStatus] = useState(null);
-      const [forumId, setForumId] = useState(null);
-      const [isLoading, setIsLoading] = useState(true);
-      const id = row.getValue("id");
-      const status = row.getValue("status");
-      const instructionStatus = row.original.instruction_status;
-
-      useEffect(() => {
-        const checkForumStatus = async () => {
-          try {
-            const response = await forumsService.checkForumExistence(id);
-            if (response.exists) {
-              setForumStatus(response.status);
-              setForumId(response.id);
-            }
-            setIsLoading(false);
-          } catch (error) {
-            console.error('Error checking forum status:', error);
-            setIsLoading(false);
-          }
-        };
-
-        checkForumStatus();
-      }, [id]);
-
-      const handleChangeStatus = async () => {
-        const newStatus = status === "PENDING" ? "COMPLETED" : "PENDING";
-        try {
-          await memosService.updateMemoStatus(id, newStatus);
-          toast.success(`${id}: Status actualizado a ${newStatus === "COMPLETED" ? "Finalizado" : "En proceso"}`);
-          setRefresh(prev => !prev);
-        } catch (error) {
-          toast.error('Error cambiando el status. Contacte a Soporte.');
-          console.error('Failed to change status:', error);
-        }
-      };
-
-      const handleForumStatus = async () => {
-        if (!forumId) {
-          toast.error('No existe un foro para este memo');
-          return;
-        }
-
-        try {
-          const newStatus = forumStatus === 'OPEN' ? 'CLOSED' : 'OPEN';
-          await forumsService.updateForumStatus(forumId, newStatus);
-          setForumStatus(newStatus);
-          toast.success(`Foro ${newStatus === 'OPEN' ? 'abierto' : 'cerrado'} exitosamente`);
-          setRefresh(prev => !prev);
-        } catch (error) {
-          toast.error('Error al cambiar el estado del foro');
-          console.error('Error:', error);
-        }
-      };
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild className="flex justify-center">
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir acciones</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate(`/check-forum/${id.toLowerCase()}`)}>
-              Abrir foro
-            </DropdownMenuItem>
-            {!isLoading && forumId && (
-              <DropdownMenuItem
-                onClick={handleForumStatus}
-                className={cn(
-                  forumStatus === 'OPEN'
-                    ? "text-red-600 hover:text-red-700"
-                    : "text-green-600 hover:text-green-700"
-                )}
-              >
-                {forumStatus === 'OPEN' ? (
-                  <div className="flex items-center gap-2">
-                    <Lock className="h-4 w-4" />
-                    <span>Cerrar foro</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Unlock className="h-4 w-4" />
-                    <span>Reabrir foro</span>
-                  </div>
-                )}
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={handleChangeStatus}>
-              Cambiar status
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              Editar registro
-            </DropdownMenuItem>
-            {instructionStatus === 'PENDING' && (
-              <DropdownMenuItem
-                onClick={() => navigate(`/memos/${id}/assign-instruction`)}
-                className="text-blue-600 hover:text-blue-700"
-              >
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  <span>Asignar Instrucción</span>
-                </div>
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => <ActionCell row={row} navigate={navigate} toast={toast} setRefresh={setRefresh} />
   },
-
 ]

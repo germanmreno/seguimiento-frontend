@@ -181,3 +181,28 @@ label:has(+ input:required):after {
     transform: translateY(-20px);
   }
 }
+
+/* Add these styles to your global CSS */
+.tabs-trigger[data-state='active'] {
+  background-color: #24387d;
+  color: white;
+}
+
+.tabs-trigger:hover:not([data-state='active']) {
+  background-color: #f3f4f6;
+}
+
+.tabs-trigger {
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.tabs-trigger:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 20%;
+  height: 60%;
+  width: 1px;
+  background-color: #e5e7eb;
+}

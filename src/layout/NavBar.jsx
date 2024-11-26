@@ -70,7 +70,7 @@ export const NavBar = () => {
               </div>
             </div>
             <NotificationBell />
-            <div className="h-[90px] hidden xl:inline-block min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
+            <div className="ml-4 h-[90px] hidden xl:inline-block min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
             <img src="/logo_batalla.png" alt="logo cvm" className="h-[90px] mx-4 xl:mr-11 hidden xl:block" />
           </div>
         </div>

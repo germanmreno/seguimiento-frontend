@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { memosService } from "@/services/memos.service";
+import { useAuth } from "@/contexts/AuthContext";
 
 import {
   flexRender,
@@ -27,9 +28,12 @@ import { FilePlus } from "lucide-react"
 
 export function DataTable({ columns = [], data = [], onRefresh }) {
 
+  const { user } = useAuth();
+
   const [sorting, setSorting] = useState([])
   const [columnFilters, setColumnFilters] = useState([])
   const [currentStatus, setCurrentStatus] = useState('all');
+  const [forumStatusFilter, setForumStatusFilter] = useState('all');
 
   const handleStatusChange = async (status = "") => {
     if (status === 'all') {
@@ -50,8 +54,12 @@ export function DataTable({ columns = [], data = [], onRefresh }) {
 
   const navigate = useNavigate();
 
+  const canRegisterMemos = () => {
+    return user.role === 'ADMIN' || user.office_id === '110';
+  };
+
   const table = useReactTable({
-    data,
+    data: data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -62,6 +70,11 @@ export function DataTable({ columns = [], data = [], onRefresh }) {
     state: {
       sorting,
       columnFilters,
+    },
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
     },
   })
 
@@ -77,27 +90,53 @@ export function DataTable({ columns = [], data = [], onRefresh }) {
           />
           <Select value={currentStatus} onValueChange={handleStatusChange}>
             <SelectTrigger className='w-[180px] ml-2 bg-white border-2'>
-              <SelectValue placeholder='Status - All' />
+              <SelectValue placeholder='Estado del Foro' />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Status</SelectLabel>
+                <SelectLabel>Estado</SelectLabel>
                 <SelectItem value='all'>Todos</SelectItem>
-                <SelectItem value='PENDING'>En proceso</SelectItem>
-                <SelectItem value='COMPLETED'>Finalizado</SelectItem>
+                <SelectItem value='OPEN'>Abiertos</SelectItem>
+                <SelectItem value='CLOSED'>Cerrados</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
+          <div className="flex items-center gap-2">
+            <Select
+              value={forumStatusFilter}
+              onValueChange={(value) => {
+                setForumStatusFilter(value);
+                table.getColumn('forum')?.setFilterValue(value);
+              }}
+            >
+              <SelectTrigger className="w-[180px] bg-white">
+                <SelectValue placeholder="Estado del Foro" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Estado del Foro</SelectLabel>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="NO_FORUM">Sin Foro</SelectItem>
+                  <SelectItem value="OPEN">Foros Abiertos</SelectItem>
+                  <SelectItem value="CLOSED">Foros Cerrados</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div> <Button variant="outline"
-          className="flex flex-row items-center justify-center h-30px p-4 py-6 rounded-full bg-primary-green transition-colors hover:bg-emerald-600/80"
-          onClick={() => navigate("/register-memo")}
-        >
-          <FilePlus className="text-white w-6" />
-          <span className="primary-text text-sm ml-2 text-slate-100">Registrar nuevo oficio</span>
-        </Button></div>
-
+        {canRegisterMemos() && (
+          <Button
+            variant="outline"
+            className="flex flex-row items-center justify-center h-30px p-4 py-6 rounded-full bg-primary-green transition-colors hover:bg-emerald-600/80"
+            onClick={() => navigate("/register-memo")}
+          >
+            <FilePlus className="text-white w-6" />
+            <span className="primary-text text-sm ml-2 text-slate-100">
+              Registrar nuevo oficio
+            </span>
+          </Button>
+        )}
       </div>
 
       <div className="rounded-md border-solid border-2 border-gray">
@@ -145,8 +184,8 @@ export function DataTable({ columns = [], data = [], onRefresh }) {
         </Table>
         <div className='space-x-2 py-4 px-2 flex justify-between items-center footer-foreground'>
           <div className='flex-1 text-sm text-white'>
-            {table.getFilteredSelectedRowModel().rows.length} de{' '}
-            {table.getFilteredRowModel().rows.length} fila(s) seleccionada(s).
+            Página {table.getState().pagination.pageIndex + 1} de{' '}
+            {table.getPageCount()}
           </div>
 
           <div className='flex items-center justify-end space-x-2'>

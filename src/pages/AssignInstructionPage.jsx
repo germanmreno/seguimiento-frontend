@@ -24,17 +24,23 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Checkbox } from "@/components/ui/checkbox"
 import { memosService } from '@/services/memos.service';
+import { useAuth } from "@/contexts/AuthContext";
+import { gerencyOptions } from "@/options/formOptions";
 
 const formSchema = z.object({
   instruction: z.array(z.string()).min(1, "Debe seleccionar una instrucción"),
+  customInstruction: z.string().optional(),
+  officeIds: z.array(z.string()).optional(),
 })
 
 export const AssignInstructionPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [memo, setMemo] = useState(null);
-  const [selectedInstruction, setSelectedInstruction] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const canEditOffices = user.role === 'ADMIN' || user.office_id === '101';
 
   useEffect(() => {
     const fetchMemo = async () => {
@@ -55,16 +61,42 @@ export const AssignInstructionPage = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       instruction: [],
+      customInstruction: "",
+      officeIds: memo?.offices?.map(office => office.office_id) || [],
     },
   })
 
-  const handleAssignInstruction = async (data) => {
-    try {
-      await memosService.assignInstruction(id, data.instruction[0]);
+  const selectedInstruction = form.watch("instruction");
+  const isOtherSelected = selectedInstruction.includes("OTHER");
 
-      const instructionLabel = instructionOptions.find(
-        opt => opt.id === data.instruction[0]
-      )?.label;
+  useEffect(() => {
+    if (memo) {
+      form.setValue('officeIds', memo.offices.map(office => office.office_id));
+    }
+  }, [memo]);
+
+  const handleAssignInstruction = async (data) => {
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+
+      toast.loading('Asignando instrucción...', {
+        id: 'assignInstruction',
+      });
+
+      const finalInstruction = isOtherSelected ? data.customInstruction : data.instruction[0];
+
+      await memosService.assignInstruction(
+        id,
+        finalInstruction,
+        data.officeIds,
+        user
+      );
+
+      const displayInstruction = isOtherSelected
+        ? data.customInstruction
+        : instructionOptions.find(opt => opt.id === finalInstruction)?.label;
 
       toast.success(
         <div className="flex flex-col gap-1">
@@ -77,19 +109,21 @@ export const AssignInstructionPage = () => {
               Memo: <span className="font-medium">{id}</span>
             </p>
             <p className="text-sm text-gray-600">
-              Instrucción: <span className="font-medium">{instructionLabel}</span>
+              Instrucción: <span className="font-medium">
+                {isOtherSelected ? "OTRA - " : ""}{displayInstruction}
+              </span>
             </p>
           </div>
         </div>,
         {
           duration: 4000,
           className: "bg-white",
+          id: 'assignInstruction',
         }
       );
 
-      setTimeout(() => {
-        navigate("/memos");
-      }, 1000);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      navigate("/memos");
     } catch (error) {
       toast.error(
         <div className="flex flex-col gap-1">
@@ -98,9 +132,12 @@ export const AssignInstructionPage = () => {
         </div>,
         {
           duration: 4000,
+          id: 'assignInstruction',
         }
       );
       console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -332,11 +369,8 @@ export const AssignInstructionPage = () => {
                         <FormLabel className="text-lg font-semibold text-gray-700">
                           SELECCIONAR INSTRUCCIÓN <span className="text-red-500 text-xl">*</span>
                         </FormLabel>
-                        <FormDescription>
-                          Seleccione la instrucción que desea asignar al memo.
-                        </FormDescription>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
-                          {instructionOptions.map((option) => (
+                          {[...instructionOptions, { id: 'OTHER', label: 'OTRA' }].map((option) => (
                             <FormField
                               key={option.id}
                               control={form.control}
@@ -351,8 +385,8 @@ export const AssignInstructionPage = () => {
                                       checked={field.value?.includes(option.id)}
                                       onCheckedChange={(checked) => {
                                         const updatedValue = checked
-                                          ? [...(field.value || []), option.id]
-                                          : field.value?.filter((value) => value !== option.id);
+                                          ? [option.id] // Only allow one selection
+                                          : [];
                                         field.onChange(updatedValue);
                                       }}
                                     />
@@ -370,20 +404,106 @@ export const AssignInstructionPage = () => {
                     )}
                   />
 
+                  {/* Custom Instruction Input */}
+                  {isOtherSelected && (
+                    <FormField
+                      control={form.control}
+                      name="customInstruction"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-lg font-semibold text-gray-700">
+                            ESCRIBIR INSTRUCCIÓN <span className="text-red-500 text-xl">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <textarea
+                              {...field}
+                              className="w-full min-h-[100px] p-3 border rounded-md"
+                              placeholder="Escriba la instrucción personalizada aquí..."
+                              required={isOtherSelected}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {/* Add office selection if user has permission */}
+                  {canEditOffices && (
+                    <FormField
+                      control={form.control}
+                      name="officeIds"
+                      render={() => (
+                        <FormItem className="space-y-4 col-span-full">
+                          <FormLabel className="text-lg primary-text">
+                            ACTUALIZAR OFICINA(S) O GERENCIA(S) RESPONSABLE(S)
+                          </FormLabel>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {gerencyOptions.map((option) => (
+                              <FormField
+                                key={option.id}
+                                control={form.control}
+                                name="officeIds"
+                                render={({ field }) => (
+                                  <FormItem
+                                    key={option.id}
+                                    className="flex flex-row items-start space-x-3 space-y-0"
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(option.id)}
+                                        className="rounded-full"
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([...field.value, option.id])
+                                            : field.onChange(
+                                              field.value?.filter(
+                                                (value) => value !== option.id
+                                              )
+                                            )
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-xs">
+                                      {option.label.toUpperCase()}
+                                    </FormLabel>
+                                  </FormItem>
+                                )}
+                              />
+                            ))}
+                          </div>
+                          <FormDescription>
+                            Actualice las gerencias relacionadas al asunto del oficio si es necesario.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
                   {/* Actions */}
                   <div className="flex justify-end space-x-4 pt-4">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => navigate("/memos")}
+                      disabled={isSubmitting}
                     >
                       Cancelar
                     </Button>
                     <Button
                       type="submit"
                       className="bg-primary-green hover:bg-primary-green/90"
+                      disabled={isSubmitting}
                     >
-                      Asignar Instrucción
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <span className="animate-spin">⏳</span>
+                          <span>Asignando...</span>
+                        </div>
+                      ) : (
+                        'Asignar Instrucción'
+                      )}
                     </Button>
                   </div>
                 </form>
