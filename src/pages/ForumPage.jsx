@@ -45,13 +45,17 @@ export const ForumPage = () => {
   const handleDeleteMessage = async (messageId) => {
     try {
       await forumsService.deleteForumMessage(id, messageId, user.id);
-      toast.success("Mensaje borrado correctamente");
-      // Optionally refresh forum data here
-      const updatedForum = await forumsService.getForumDetails(id);
-      setForum(updatedForum);
+
+      // Update the forum state by removing the deleted message
+      setForum(prevForum => ({
+        ...prevForum,
+        messages: prevForum.messages.filter(msg => msg.id !== messageId)
+      }));
+
+      toast.success("Mensaje eliminado correctamente");
     } catch (error) {
       console.error('Failed to delete message:', error);
-      toast.error(error.response?.data?.error || 'Failed to delete message');
+      toast.error(error.error || 'Error al eliminar el mensaje');
     }
   };
 
@@ -138,7 +142,7 @@ export const ForumPage = () => {
                               ) : (
                                 <div className="relative overflow-hidden rounded-lg border aspect-square h-24">
                                   <img
-                                    src={`http://localhost:3000/${image.path}`}
+                                    src={`http://localhost:3005/${image.path}`}
                                     alt={`Imagen ${index + 1}`}
                                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                   />
@@ -152,14 +156,14 @@ export const ForumPage = () => {
                           <DialogContent className="max-w-3xl max-h-[80vh]">
                             {image.isPdf ? (
                               <iframe
-                                src={`http://localhost:3000/${image.path}`}
+                                src={`http://localhost:3005/${image.path}`}
                                 className="w-full h-[70vh]"
                                 title="PDF Viewer"
                               />
                             ) : (
                               <div className="relative w-full h-full max-h-[70vh] flex items-center justify-center">
                                 <img
-                                  src={`http://localhost:3000/${image.path}`}
+                                  src={`http://localhost:3005/${image.path}`}
                                   alt={`Imagen ${index + 1}`}
                                   className="max-w-full max-h-full object-contain"
                                 />
@@ -197,7 +201,7 @@ export const ForumPage = () => {
                               ) : (
                                 <div className="relative overflow-hidden rounded-lg border aspect-square h-24">
                                   <img
-                                    src={`http://localhost:3000/${file.path}`}
+                                    src={`http://localhost:3005/${file.path}`}
                                     alt={`Archivo ${index + 1}`}
                                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                   />
@@ -211,14 +215,14 @@ export const ForumPage = () => {
                           <DialogContent className="max-w-3xl max-h-[80vh]">
                             {file.type === 'application/pdf' ? (
                               <iframe
-                                src={`http://localhost:3000/${file.path}`}
+                                src={`http://localhost:3005/${file.path}`}
                                 className="w-full h-[70vh]"
                                 title="PDF Viewer"
                               />
                             ) : (
                               <div className="relative w-full h-full max-h-[70vh] flex items-center justify-center">
                                 <img
-                                  src={`http://localhost:3000/${file.path}`}
+                                  src={`http://localhost:3005/${file.path}`}
                                   alt={`Archivo ${index + 1}`}
                                   className="max-w-full max-h-full object-contain"
                                 />

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '@/services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const NotificationBell = () => {
@@ -19,7 +19,9 @@ export const NotificationBell = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/notifications?user_id=${user.id}`);
+      const response = await api.get(`/notifications`, {
+        params: { user_id: user.id }
+      });
       setNotifications(response.data);
       setUnreadCount(response.data.filter(n => !n.read).length);
     } catch (error) {
@@ -36,11 +38,8 @@ export const NotificationBell = () => {
 
   const handleNotificationClick = async (notification) => {
     try {
-      // Mark as read
-      await axios.patch(`http://localhost:3000/notifications/${notification.id}/read`);
-      // Navigate to forum
+      await api.patch(`/notifications/${notification.id}/read`);
       navigate(`/forums/${notification.forum_id}`);
-      // Refresh notifications
       fetchNotifications();
     } catch (error) {
       console.error('Failed to handle notification:', error);
@@ -50,7 +49,7 @@ export const NotificationBell = () => {
   const handleDelete = async (e, notification) => {
     e.stopPropagation();
     try {
-      await axios.delete(`http://localhost:3000/notifications/${notification.id}`);
+      await api.delete(`/notifications/${notification.id}`);
       fetchNotifications();
     } catch (error) {
       console.error('Failed to delete notification:', error);

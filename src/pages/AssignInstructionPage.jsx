@@ -3,16 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "../layout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { instructionOptions } from "../options/formOptions";
 import { FileText, Eye, Download, Clock, User, Mail, Calendar } from "lucide-react";
-import axios from "axios";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { formatOfficeString, getUrgencyVariant } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -26,6 +23,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Checkbox } from "@/components/ui/checkbox"
+import { memosService } from '@/services/memos.service';
 
 const formSchema = z.object({
   instruction: z.array(z.string()).min(1, "Debe seleccionar una instrucción"),
@@ -41,8 +39,8 @@ export const AssignInstructionPage = () => {
   useEffect(() => {
     const fetchMemo = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/memos/${id}`);
-        setMemo(response.data);
+        const data = await memosService.getMemo(id);
+        setMemo(data);
         setLoading(false);
       } catch (error) {
         toast.error("Error al cargar el memo");
@@ -62,40 +60,36 @@ export const AssignInstructionPage = () => {
 
   const handleAssignInstruction = async (data) => {
     try {
-      const response = await axios.patch(`http://localhost:3000/memos/${id}/instruction`, {
-        instruction: data.instruction[0],
-      });
+      await memosService.assignInstruction(id, data.instruction[0]);
 
-      if (response.status === 200) {
-        const instructionLabel = instructionOptions.find(
-          opt => opt.id === data.instruction[0]
-        )?.label;
+      const instructionLabel = instructionOptions.find(
+        opt => opt.id === data.instruction[0]
+      )?.label;
 
-        toast.success(
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-green-600" />
-              <span className="font-semibold text-base">Instrucción asignada exitosamente</span>
-            </div>
-            <div className="pl-7">
-              <p className="text-sm text-gray-600">
-                Memo: <span className="font-medium">{id}</span>
-              </p>
-              <p className="text-sm text-gray-600">
-                Instrucción: <span className="font-medium">{instructionLabel}</span>
-              </p>
-            </div>
-          </div>,
-          {
-            duration: 4000,
-            className: "bg-white",
-          }
-        );
+      toast.success(
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-green-600" />
+            <span className="font-semibold text-base">Instrucción asignada exitosamente</span>
+          </div>
+          <div className="pl-7">
+            <p className="text-sm text-gray-600">
+              Memo: <span className="font-medium">{id}</span>
+            </p>
+            <p className="text-sm text-gray-600">
+              Instrucción: <span className="font-medium">{instructionLabel}</span>
+            </p>
+          </div>
+        </div>,
+        {
+          duration: 4000,
+          className: "bg-white",
+        }
+      );
 
-        setTimeout(() => {
-          navigate("/memos");
-        }, 1000);
-      }
+      setTimeout(() => {
+        navigate("/memos");
+      }, 1000);
     } catch (error) {
       toast.error(
         <div className="flex flex-col gap-1">
@@ -111,7 +105,7 @@ export const AssignInstructionPage = () => {
   };
 
   const handleViewFile = (filePath) => {
-    window.open(`http://localhost:3000/${filePath}`, '_blank');
+    window.open(`http://localhost:3005/${filePath}`, '_blank');
   };
 
   const formatReceptionMethod = (method) => {
@@ -265,7 +259,7 @@ export const AssignInstructionPage = () => {
                             ) : (
                               <>
                                 <img
-                                  src={`http://localhost:3000/${file.path}`}
+                                  src={`http://localhost:3005/${file.path}`}
                                   alt={`Recepción ${index + 1}`}
                                   className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-105"
                                 />
@@ -279,13 +273,13 @@ export const AssignInstructionPage = () => {
                         <DialogContent className="max-w-4xl">
                           {file.isPdf ? (
                             <iframe
-                              src={`http://localhost:3000/${file.path}`}
+                              src={`http://localhost:3005/${file.path}`}
                               className="w-full h-[80vh]"
                               title="PDF Viewer"
                             />
                           ) : (
                             <img
-                              src={`http://localhost:3000/${file.path}`}
+                              src={`http://localhost:3005/${file.path}`}
                               alt={`Recepción ${index + 1}`}
                               className="max-h-[80vh] w-auto mx-auto"
                             />
