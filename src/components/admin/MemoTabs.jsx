@@ -87,25 +87,26 @@ export const MemoTabs = () => {
       setLoading(true);
       let params = {};
 
-      // Special handling for pending tab
       if (tabValue === 'pending') {
         const memosData = await memosService.getAllMemosWithFilters(user, {});
-        // Filter pending memos at the client side
-        const pendingMemos = memosData.filter(memo => memo.instruction_status === 'PENDING');
+        const pendingMemos = memosData.filter(memo =>
+          memo?.instruction_status === 'PENDING'
+        );
         setMemos(pendingMemos);
+        setPendingCount(pendingMemos.length);
         return;
       }
 
-      // For regular users, always use their office_id
-      if (user.role !== 'ADMIN') {
+      if (user?.role !== 'ADMIN') {
         params.office_id = user.office_id;
       } else if (tabValue !== 'all') {
         params.office_id = tabValue;
       }
 
       const memosData = await memosService.getAllMemosWithFilters(user, params);
-      setMemos(memosData);
+      setMemos(memosData || []);
     } catch (error) {
+      console.error('Error fetching memos:', error);
       setError(error.message);
       toast.error('Error al cargar los oficios');
     } finally {
@@ -130,15 +131,16 @@ export const MemoTabs = () => {
     user.office_id === '100';   // PRESIDENCIA
 
   const getFilteredMemos = (tabValue) => {
+    if (!Array.isArray(memos)) return [];
+
     if (tabValue === 'pending') {
-      return memos.filter(memo => memo.instruction_status === 'PENDING');
+      return memos.filter(memo => memo?.instruction_status === 'PENDING');
     }
     if (tabValue === 'all') {
       return memos;
     }
-    // For office tabs
     return memos.filter(memo =>
-      memo.offices.some(office => office.office_id === tabValue)
+      memo?.offices?.some(office => office?.office_id === tabValue)
     );
   };
 

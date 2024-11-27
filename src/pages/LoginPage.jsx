@@ -7,6 +7,7 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '@/services/auth.service';
+import { Loader } from '@/components/custom/Loader';
 
 export const LoginPage = () => {
   const { user, login } = useAuth();
@@ -50,13 +51,14 @@ export const LoginPage = () => {
 
   return (
     <>
+      {isLoading && <Loader message="Ingresando..." />}
       <div className="flex max-h-screen">
         <div className="hidden lg:block relative min-w-[1000px] h-screen bg-no-repeat bg-cover bg-[center_top_-8rem] border-r-4"
-          style={{ backgroundImage: `url(/background_login.png)` }}>
+          style={{ backgroundImage: `url(/background_login.webp)` }}>
         </div>
 
         <div className="w-full lg:min-w-2/3 p-8 flex flex-col justify-center items-center bg-cover bg-center h-screen"
-          style={{ backgroundImage: `url(/background.png)` }}>
+          style={{ backgroundImage: `url(/background.webp)` }}>
           <div className="max-w-sm w-full">
             <h1 className="text-3xl font-bold mb-6 primary-text text-center">¡Bienvenido (a)!</h1>
             <p className="mb-6 font-bold secondary-text text-center">

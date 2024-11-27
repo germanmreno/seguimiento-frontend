@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { Loader } from "@/components/custom";
+import { formatDate, formatTime } from '@/lib/dateUtils';
+import { STATUS_STYLES } from '@/constants/status';
 
 export const MemoDetailsPage = () => {
   const { id } = useParams();
@@ -126,46 +128,8 @@ export const MemoDetailsPage = () => {
     return responseMap[response] || response;
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "No especificado";
-    try {
-      // First try to parse the date
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return "Fecha inválida";
-      }
-      return format(date, 'dd/MM/yyyy');
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return "Fecha inválida";
-    }
-  };
-
-  const formatTime = (timeString) => {
-    if (!timeString) return "No especificado";
-    try {
-      // If it's just a time string (HH:mm), add a dummy date
-      if (timeString.length <= 5) {
-        timeString = `2000-01-01T${timeString}`;
-      }
-      const date = new Date(timeString);
-      if (isNaN(date.getTime())) {
-        return "Hora inválida";
-      }
-      return format(date, 'HH:mm');
-    } catch (error) {
-      console.error('Error formatting time:', error);
-      return "Hora inválida";
-    }
-  };
-
   const getStatusBadgeVariant = (status) => {
-    const variants = {
-      PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      ASSIGNED: "bg-blue-100 text-blue-800 border-blue-200",
-      COMPLETED: "bg-green-100 text-green-800 border-green-200",
-    };
-    return variants[status] || "bg-gray-100 text-gray-800 border-gray-200";
+    return STATUS_STYLES[status] || "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   const getUrgencyBadgeVariant = (urgency) => {

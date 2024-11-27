@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { memosService } from "@/services/memos.service";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -31,25 +31,86 @@ export function DataTable({ columns = [], data = [], onRefresh }) {
   const { user } = useAuth();
 
   const [sorting, setSorting] = useState([])
-  const [columnFilters, setColumnFilters] = useState([])
+  const [globalFilter, setGlobalFilter] = useState('')
   const [currentStatus, setCurrentStatus] = useState('all');
   const [forumStatusFilter, setForumStatusFilter] = useState('all');
 
-  const handleStatusChange = async (status = "") => {
-    if (status === 'all') {
-      table.getColumn('status')?.setFilterValue(undefined);
-      setCurrentStatus('all');
-      return;
+  // Memoize the filtered data
+  const filteredData = useMemo(() => {
+    let result = [...data];
+
+    // Apply status filter
+    if (currentStatus !== 'all') {
+      result = result.filter(item => item.status === currentStatus);
     }
 
-    setCurrentStatus(status);
-    table.getColumn('status')?.setFilterValue(status);
+    // Apply forum status filter
+    if (forumStatusFilter !== 'all') {
+      switch (forumStatusFilter) {
+        case 'NO_FORUM':
+          result = result.filter(item => !item.forum);
+          break;
+        case 'OPEN':
+          result = result.filter(item => item.forum?.status === 'OPEN');
+          break;
+        case 'CLOSED':
+          result = result.filter(item => item.forum?.status === 'CLOSED');
+          break;
+      }
+    }
+
+    // Apply global search filter
+    if (globalFilter) {
+      const searchTerm = globalFilter.toLowerCase();
+      result = result.filter(item => {
+        const searchableFields = [
+          item.id,
+          item.name,
+          item.applicant,
+          item.observation,
+          ...(item.offices?.map(o => o.office.name) || []),
+        ];
+        return searchableFields.some(field =>
+          String(field || '').toLowerCase().includes(searchTerm)
+        );
+      });
+    }
+
+    return result;
+  }, [data, currentStatus, forumStatusFilter, globalFilter]);
+
+  const table = useReactTable({
+    data: filteredData,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+      globalFilter,
+    },
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
+  });
+
+  const handleStatusChange = (value) => {
+    setCurrentStatus(value);
+    table.setPageIndex(0);
   };
 
-  const handleSearch = (event) => {
-    setCurrentStatus('all');
-    table.getColumn('status')?.setFilterValue(undefined);
-    table.getColumn('name')?.setFilterValue(event.target.value);
+  const handleForumStatusChange = (value) => {
+    setForumStatusFilter(value);
+    table.setPageIndex(0);
+  };
+
+  const handleSearchChange = (e) => {
+    setGlobalFilter(e.target.value);
+    table.setPageIndex(0);
   };
 
   const navigate = useNavigate();
@@ -58,71 +119,55 @@ export function DataTable({ columns = [], data = [], onRefresh }) {
     return user.role === 'ADMIN' || user.office_id === '110';
   };
 
-  const table = useReactTable({
-    data: data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      sorting,
-      columnFilters,
-    },
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
-    },
-  })
-
   return (
     <div>
       <div className="flex items-center justify-between py-4 px-4 bg-gray-200/90 border-2 mt-[-5px] mb-[-1px] border-solid border-gray">
-        <div className="flex flex-row">
+        <div className="flex flex-row gap-2">
+          {/* Global Search */}
           <Input
-            placeholder='Filtrar por...'
-            value={(table.getColumn('name')?.getFilterValue()) ?? ''}
-            onChange={handleSearch}
-            className='max-w-sm bg-white'
+            placeholder="Buscar..."
+            value={globalFilter}
+            onChange={handleSearchChange}
+            className="max-w-sm bg-white"
           />
-          <Select value={currentStatus} onValueChange={handleStatusChange}>
-            <SelectTrigger className='w-[180px] ml-2 bg-white border-2'>
-              <SelectValue placeholder='Estado del Foro' />
+
+          {/* Status Filter */}
+          <Select
+            value={currentStatus}
+            onValueChange={handleStatusChange}
+          >
+            <SelectTrigger className="w-[180px] bg-white">
+              <SelectValue placeholder="Estado del Memo" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Estado</SelectLabel>
-                <SelectItem value='all'>Todos</SelectItem>
-                <SelectItem value='OPEN'>Abiertos</SelectItem>
-                <SelectItem value='CLOSED'>Cerrados</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="PENDING">Pendientes</SelectItem>
+                <SelectItem value="COMPLETED">Completados</SelectItem>
+                <SelectItem value="ARCHIVED">Archivados</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
-          <div className="flex items-center gap-2">
-            <Select
-              value={forumStatusFilter}
-              onValueChange={(value) => {
-                setForumStatusFilter(value);
-                table.getColumn('forum')?.setFilterValue(value);
-              }}
-            >
-              <SelectTrigger className="w-[180px] bg-white">
-                <SelectValue placeholder="Estado del Foro" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Estado del Foro</SelectLabel>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="NO_FORUM">Sin Foro</SelectItem>
-                  <SelectItem value="OPEN">Foros Abiertos</SelectItem>
-                  <SelectItem value="CLOSED">Foros Cerrados</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+
+          {/* Forum Status Filter */}
+          <Select
+            value={forumStatusFilter}
+            onValueChange={handleForumStatusChange}
+          >
+            <SelectTrigger className="w-[180px] bg-white">
+              <SelectValue placeholder="Estado del Foro" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Estado del Foro</SelectLabel>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="NO_FORUM">Sin Foro</SelectItem>
+                <SelectItem value="OPEN">Foros Abiertos</SelectItem>
+                <SelectItem value="CLOSED">Foros Cerrados</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         {canRegisterMemos() && (

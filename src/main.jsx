@@ -13,6 +13,7 @@ import { ForumsPage } from './pages/ForumsPage'
 import { AdministrationPanel } from './pages/AdministrationPanel'
 import { MemoTabs } from './components/admin/MemoTabs'
 import { MemoDetailsPage } from './pages/MemoDetailsPage'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 const router = createBrowserRouter([
   {
@@ -72,9 +73,11 @@ const router = createBrowserRouter([
 
 export const App = () => (
   <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </ErrorBoundary>
   </StrictMode>
 );
 

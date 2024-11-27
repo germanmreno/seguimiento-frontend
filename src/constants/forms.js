@@ -1,0 +1,16 @@
+export const INITIAL_MEMO_FORM_STATE = {
+  applicant: '',
+  attachment_type: [],
+  reception_images: [],
+  attachment_files: [],
+  id: '',
+  name: '',
+  observation: '',
+  officeIds: [],
+  reception_method: '',
+  receptionHour: '',
+  receptionMinute: '',
+  response_require: '',
+  status: 'PENDING',
+  urgency: 'NORMAL',
+};

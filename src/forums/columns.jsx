@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { memosService } from '@/services/memos.service';
 import { cn } from "@/lib/utils"
 import { forumsService } from '@/services/forums.service';
+import { STATUS_STYLES, STATUS_TEXT } from '@/constants/status';
 
 const myCustomFilterFn = (row, columnId, filterValue) => {
   const lowerFilterValue = filterValue.toLowerCase();
@@ -237,19 +238,6 @@ const ActionCell = ({ row, navigate, toast, setRefresh }) => {
   );
 };
 
-// Add this to your status badge component
-const statusStyles = {
-  PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  COMPLETED: "bg-green-100 text-green-800 border-green-200",
-  ARCHIVED: "bg-gray-100 text-gray-800 border-gray-200" // New archived style
-};
-
-const statusText = {
-  PENDING: "Pendiente",
-  COMPLETED: "Completado",
-  ARCHIVED: "Archivado" // New archived text
-};
-
 // Define columns with the new ActionCell component
 export const columns = ({ navigate, toast, setRefresh }) => [
   {
@@ -277,7 +265,7 @@ export const columns = ({ navigate, toast, setRefresh }) => [
             variant={status === 'PENDING' ? 'pending' : 'completed'}
             className="w-fit text-xs"
           >
-            {status === 'PENDING' ? 'Pendiente' : 'Asignada'}
+            {STATUS_TEXT[status]}
           </Badge>
           {status === 'ASSIGNED' && instruction && (
             <span className="text-xs text-gray-600 font-medium truncate max-w-[180px] text-center">
@@ -413,9 +401,9 @@ export const columns = ({ navigate, toast, setRefresh }) => [
         <div className="text-center space-y-1">
           <Badge
             variant="outline"
-            className={`${statusStyles[status]} border`}
+            className={`${STATUS_STYLES[status]} border`}
           >
-            {statusText[status]}
+            {STATUS_TEXT[status]}
           </Badge>
 
           {/* Forum Status Badge */}

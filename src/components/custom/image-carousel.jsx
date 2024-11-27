@@ -8,7 +8,7 @@ import {
 import Autoplay from "embla-carousel-autoplay"
 
 const images = [
-  "/banner1.png", "/banner2.png", "/banner3.png", "/banner4.png",
+  "/banner1.webp", "/banner2.webp", "/banner3.webp", "/banner4.webp",
 ]
 
 

@@ -1,54 +1,41 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '@/services/auth.service';
+import { LogoutModal } from '@/components/custom/LogoutModal';
+import { Loader } from '@/components/custom/Loader';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
 
   useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Check for token and user data on initial load
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-
-    if (token && userData) {
-      // If offline, use stored credentials
-      if (!navigator.onLine || authService.isTokenValid()) {
-        authService.setAuthHeader(token);
-        setUser(JSON.parse(userData));
-      } else {
-        // If online, validate token
-        authService.validateToken()
-          .catch(() => {
-            // If validation fails, try refresh
-            authService.refreshToken()
-              .catch(() => {
-                logout();
-              });
-          });
+      if (token && userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          authService.setAuthHeader(token);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+        }
       }
-    }
-
-    // Setup interceptors for token refresh
-    authService.setupInterceptors(() => logout());
-
-    setLoading(false);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      setLoading(false);
     };
+
+    initAuth();
   }, []);
 
-  const login = (userData, token) => {
+  const login = async (userData, token) => {
+    if (!userData || !token) {
+      throw new Error('Invalid login data');
+    }
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', token);
@@ -62,9 +49,27 @@ export const AuthProvider = ({ children }) => {
     authService.setAuthHeader(null);
   };
 
+  const handleLogout = () => {
+    setLogoutModalOpen(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    setLogoutModalOpen(false);
+  };
+
+  if (loading) {
+    return <Loader message="Cargando..." />;
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, handleLogout, loading }}>
       {children}
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setLogoutModalOpen(false)}
+        onConfirm={confirmLogout}
+      />
     </AuthContext.Provider>
   );
 };
