@@ -16,8 +16,13 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
   const [selectedFile, setSelectedFile] = useState(null)
   const [isSending, setIsSending] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [currentForumStatus, setCurrentForumStatus] = useState(forumStatus)
   const scrollAreaRef = useRef(null)
   const fileInputRef = useRef(null)
+
+  useEffect(() => {
+    setCurrentForumStatus(forumStatus)
+  }, [forumStatus])
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
@@ -38,8 +43,22 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
   const fetchMessages = async () => {
     setIsRefreshing(true)
     try {
-      const messages = await forumsService.getForumMessages(forumId)
+      const [forumDetails, messages] = await Promise.all([
+        forumsService.getForum(forumId),
+        forumsService.getForumMessages(forumId)
+      ])
+
       setMessages(messages)
+      setCurrentForumStatus(forumDetails.status)
+
+      if (forumDetails.status !== forumStatus) {
+        window.dispatchEvent(new CustomEvent('forumStatusChanged', {
+          detail: {
+            forumId,
+            status: forumDetails.status
+          }
+        }))
+      }
     } catch (error) {
       console.error('Failed to fetch messages:', error)
       toast.error('Error al cargar los mensajes')
@@ -51,10 +70,20 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
 
   const handleSendMessage = async (e) => {
     e.preventDefault()
-    if (forumStatus === 'CLOSED') {
-      toast.error('Este foro está cerrado y no permite nuevos mensajes')
+
+    try {
+      const forumDetails = await forumsService.getForum(forumId)
+      if (forumDetails.status === 'CLOSED') {
+        toast.error('Este foro está cerrado y no permite nuevos mensajes')
+        setCurrentForumStatus('CLOSED')
+        return
+      }
+    } catch (error) {
+      console.error('Error checking forum status:', error)
+      toast.error('Error al verificar el estado del foro')
       return
     }
+
     if ((!newMessage.trim() && !selectedFile) || isSending) return
 
     setIsSending(true)
@@ -78,7 +107,12 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
       toast.success('Mensaje enviado correctamente')
     } catch (error) {
       console.error('Failed to send message:', error)
-      toast.error('Error al enviar el mensaje')
+      if (error.response?.status === 403) {
+        setCurrentForumStatus('CLOSED')
+        toast.error('Este foro está cerrado y no permite nuevos mensajes')
+      } else {
+        toast.error('Error al enviar el mensaje')
+      }
     } finally {
       setIsSending(false)
     }
@@ -108,7 +142,7 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
 
   return (
     <div className="bg-white shadow-md border-2 border-primary-blue rounded-lg p-4 w-full text-black">
-      {forumStatus === 'CLOSED' && (
+      {currentForumStatus === 'CLOSED' && (
         <div className="mb-4 p-2 bg-red-50 border border-red-200 rounded-md">
           <div className="flex items-center justify-center gap-2 text-red-700">
             <Lock className="h-4 w-4" />
@@ -120,7 +154,7 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-primary-blue">Mensajes</h3>
-          {forumStatus === 'CLOSED' && (
+          {currentForumStatus === 'CLOSED' && (
             <Badge variant="destructive" className="animate-pulse">
               Foro Cerrado
             </Badge>
@@ -201,8 +235,8 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
           className="flex items-center space-x-2"
           initial={false}
           animate={{
-            opacity: forumStatus === 'CLOSED' ? 0.5 : 1,
-            scale: forumStatus === 'CLOSED' ? 0.98 : 1
+            opacity: currentForumStatus === 'CLOSED' ? 0.5 : 1,
+            scale: currentForumStatus === 'CLOSED' ? 0.98 : 1
           }}
         >
           <div className="relative flex-grow group">
@@ -210,11 +244,11 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder={forumStatus === 'CLOSED' ? "Este foro está cerrado" : "Escribe tu mensaje..."}
-              disabled={forumStatus === 'CLOSED'}
+              placeholder={currentForumStatus === 'CLOSED' ? "Este foro está cerrado" : "Escribe tu mensaje..."}
+              disabled={currentForumStatus === 'CLOSED'}
               className={cn(
                 "pr-12 transition-all duration-200",
-                forumStatus === 'CLOSED' && "cursor-not-allowed bg-gray-50"
+                currentForumStatus === 'CLOSED' && "cursor-not-allowed bg-gray-50"
               )}
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -222,7 +256,7 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
                 htmlFor="file-upload"
                 className={cn(
                   "cursor-pointer p-1 rounded-full hover:bg-gray-100 transition-colors",
-                  forumStatus === 'CLOSED' && "cursor-not-allowed opacity-50"
+                  currentForumStatus === 'CLOSED' && "cursor-not-allowed opacity-50"
                 )}
               >
                 <Upload className="h-4 w-4 text-gray-500" />
@@ -232,20 +266,20 @@ export const ChatBox = ({ forumId, onDeleteMessage, currentUserId, forumStatus }
                 type="file"
                 className="hidden"
                 onChange={handleFileSelect}
-                disabled={forumStatus === 'CLOSED'}
+                disabled={currentForumStatus === 'CLOSED'}
               />
             </div>
           </div>
 
-          <motion.div whileHover={{ scale: forumStatus === 'CLOSED' ? 1 : 1.05 }}>
+          <motion.div whileHover={{ scale: currentForumStatus === 'CLOSED' ? 1 : 1.05 }}>
             <Button
               type="submit"
-              disabled={forumStatus === 'CLOSED' || isSending}
+              disabled={currentForumStatus === 'CLOSED' || isSending}
               className={cn(
                 "bg-primary-blue text-white transition-all duration-200",
                 "hover:bg-primary-blue/90",
                 "focus:ring-2 focus:ring-primary-blue focus:ring-offset-2",
-                (isSending || forumStatus === 'CLOSED') && "opacity-50 cursor-not-allowed"
+                (isSending || currentForumStatus === 'CLOSED') && "opacity-50 cursor-not-allowed"
               )}
             >
               {isSending ? (

@@ -3,7 +3,7 @@ import { Layout } from "../layout/Layout";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Lock, MessageCircle, Building, Search, Filter } from "lucide-react";
+import { Clock, Lock, MessageCircle, Building, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Loader } from "@/components/custom";
 import { urgencyOptions } from "@/options/formOptions";
@@ -37,6 +37,24 @@ export const ForumsPage = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedUrgency, setSelectedUrgency] = useState("all");
   const [selectedDate, setSelectedDate] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
+
+  // Calculate pagination
+  const indexOfLastForum = currentPage * ITEMS_PER_PAGE;
+  const indexOfFirstForum = indexOfLastForum - ITEMS_PER_PAGE;
+  const currentForums = filteredForums.slice(indexOfFirstForum, indexOfLastForum);
+  const totalPages = Math.ceil(filteredForums.length / ITEMS_PER_PAGE);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedStatus, selectedUrgency, selectedDate]);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     const fetchAllForums = async () => {
@@ -189,12 +207,10 @@ export const ForumsPage = () => {
           </div>
         </div>
 
-        {/* Forums Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredForums.map((forum) => {
-            // Safely access urgency level with fallback
+        {/* Updated Forums List */}
+        <div className="space-y-4">
+          {currentForums.map((forum) => {
             const urgencyLevel = forum.memoDetails?.urgencyLevel || 'NORMAL';
-
             const urgencyVariant = urgencyOptions.find(
               option => option.id === urgencyLevel.toUpperCase()
             )?.variant || 'default';
@@ -204,85 +220,115 @@ export const ForumsPage = () => {
                 key={forum.id}
                 className={cn(
                   "cursor-pointer hover:shadow-lg transition-shadow duration-200",
-                  "border-2",
-                  forum.status === 'CLOSED' ? "border-red-500/50" : "border-primary-blue/50"
+                  "border-l-4",
+                  forum.status === 'CLOSED'
+                    ? "border-l-red-500"
+                    : "border-l-primary-blue"
                 )}
                 onClick={() => navigate(`/forums/${forum.id}`)}
               >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg font-semibold text-primary-blue">
-                      {forum.title}
-                    </CardTitle>
-                    {forum.status === 'CLOSED' && (
-                      <Badge variant="destructive" className="flex items-center gap-1">
-                        <Lock className="h-3 w-3" />
-                        Cerrado
-                      </Badge>
-                    )}
-                  </div>
-                  <CardDescription className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        Memo: <Badge variant="outline">{forum.memo_id.toUpperCase()}</Badge>
-                      </div>
-                      {urgencyLevel && (
-                        <Badge variant={urgencyVariant} className="ml-2">
+                <div className="flex items-start p-4 gap-4">
+                  {/* Left side: Main info */}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-lg font-semibold text-primary-blue">
+                        {forum.title}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={urgencyVariant}>
                           {urgencyLevel}
+                        </Badge>
+                        {forum.status === 'CLOSED' && (
+                          <Badge variant="destructive" className="flex items-center gap-1">
+                            <Lock className="h-3 w-3" />
+                            Cerrado
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-gray-600 mb-2">
+                      {forum.description}
+                    </p>
+
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline">
+                        Memo: {forum.memo_id.toUpperCase()}
+                      </Badge>
+                      {forum.memoDetails?.instruction && (
+                        <Badge variant="outline" className="bg-gray-50">
+                          {forum.memoDetails.instruction}
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4 text-gray-500" />
-                      <div className="flex flex-wrap gap-1">
-                        {forum.relatedOffices.map((office) => (
-                          <Badge
-                            key={office.id}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {office.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    {forum.memoDetails?.instruction && (
-                      <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline" className="bg-gray-50 text-gray-600">
-                          Instrucción: {forum.memoDetails.instruction}
-                        </Badge>
-                      </div>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {forum.description}
-                  </p>
-                </CardContent>
-                <CardFooter className="flex justify-between text-sm text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <MessageCircle className="h-4 w-4" />
-                    <span>{forum.messageCount} mensajes</span>
                   </div>
-                  <div className="flex flex-col items-end gap-0.5">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      <span>Creado: {new Date(forum.createdAt).toLocaleDateString()}</span>
+
+                  {/* Right side: Stats & Dates */}
+                  <div className="flex flex-col items-end gap-2 min-w-[200px]">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <MessageCircle className="h-4 w-4" />
+                      <span>{forum.messageCount} mensajes</span>
                     </div>
+
+                    <div className="text-xs text-gray-500">
+                      Creado: {new Date(forum.createdAt).toLocaleDateString()}
+                    </div>
+
                     {forum.lastMessageAt && (
-                      <div className="flex items-center gap-1 text-primary-blue">
-                        <Clock className="h-4 w-4" />
-                        <span>
-                          Último mensaje: {new Date(forum.lastMessageAt).toLocaleDateString()} {new Date(forum.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                      <div className="text-xs text-primary-blue">
+                        Último mensaje: {new Date(forum.lastMessageAt).toLocaleString()}
                       </div>
                     )}
                   </div>
-                </CardFooter>
+                </div>
               </Card>
             );
           })}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(page)}
+                  className={cn(
+                    "w-8 h-8",
+                    currentPage === page && "bg-primary-blue text-white"
+                  )}
+                >
+                  {page}
+                </Button>
+              ))}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* No results message */}
+          {filteredForums.length === 0 && (
+            <div className="text-center py-10">
+              <p className="text-gray-500">No se encontraron foros que coincidan con los filtros.</p>
+            </div>
+          )}
         </div>
       </div>
     </Layout>

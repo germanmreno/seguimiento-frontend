@@ -8,7 +8,11 @@ import { User } from 'lucide-react';
 export const NavBar = () => {
   const navigate = useNavigate();
   const { startViewTransition } = useViewTransition();
-  const { user, logout } = useAuth();
+  const { user, handleLogout } = useAuth();
+
+  if (!user) {
+    return null;
+  }
 
   const handleNavigation = (path) => {
     startViewTransition(() => {
@@ -16,22 +20,15 @@ export const NavBar = () => {
     });
   };
 
-  const handleLogout = () => {
-    startViewTransition(() => {
-      logout();
-      navigate("/", { replace: true });
-    });
-  };
-
   return (
     <nav className="navbar navbar-light navbar-gradient m-0 min-w-[400px] lg:w-[100%] h-auto xl:h-[125px] p-2 flex justify-center border-b-4 border-gray-950">
       <div className="w-[80%] flex flex-col xl:flex-row justify-between items-center">
         <div className="flex xl:ml-11">
-          <img src="/logo_gob.png" alt="logo gobierno" className="h-[90px] mx-4" />
+          <img src="/logo_gob.webp" alt="logo gobierno" className="h-[90px] mx-4" />
           <div className="inline-block h-[90px] min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
-          <img src="/logo_cvm.png" alt="logo cvm" className="h-[90px] mx-4" />
+          <img src="/logo_cvm.webp" alt="logo cvm" className="h-[90px] mx-4" />
           <div className="inline-block h-[90px] xl:hidden min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
-          <img src="/logo_batalla.png" alt="logo cvm" className="h-[90px] mx-4 mr-11 xl:hidden" />
+          <img src="/logo_batalla.webp" alt="logo cvm" className="h-[90px] mx-4 mr-11 xl:hidden" />
         </div>
         <div className="flex mt-8 xl:mt-0 text-center justify-center items-end text-white">
           <div className="flex flex-col lg:flex-row text-center justify-center items-end text-white p-0">
@@ -40,7 +37,7 @@ export const NavBar = () => {
               className="flex justify-center items-center p-2"
               onClick={() => handleNavigation("/home")}
             >
-              <img src="/icon_home.png" alt="registro" className="h-[50px]" />
+              <img src="/icon_home.webp" alt="registro" className="h-[50px]" />
               <span className="primary-text">INICIO</span>
             </Button>
             <Button
@@ -70,7 +67,7 @@ export const NavBar = () => {
               </div>
             </div>
             <NotificationBell />
-            <div className="h-[90px] hidden xl:inline-block min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
+            <div className="ml-4 h-[90px] hidden xl:inline-block min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
             <img src="/logo_batalla.png" alt="logo cvm" className="h-[90px] mx-4 xl:mr-11 hidden xl:block" />
           </div>
         </div>

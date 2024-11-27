@@ -63,4 +63,82 @@ export const authService = {
       throw error;
     }
   },
+
+  refreshToken: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No token found');
+
+      const response = await api.post('/auth/refresh-token', { token });
+      return response.data;
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      throw error;
+    }
+  },
+
+  // Add interceptor to handle token refresh
+  setupInterceptors: (logout) => {
+    api.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+
+        // Check if error is due to network connectivity
+        if (!navigator.onLine) {
+          // If offline, check if token exists and hasn't expired
+          const token = localStorage.getItem('token');
+          const user = JSON.parse(localStorage.getItem('user'));
+
+          if (token && user) {
+            // Allow the request to proceed with existing token
+            return Promise.resolve({ data: { token, user } });
+          }
+        }
+
+        // If error is 401 and we haven't tried to refresh token yet
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          try {
+            const { token, user } = await authService.refreshToken();
+
+            // Update token in localStorage and headers
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(user));
+            authService.setAuthHeader(token);
+
+            // Retry original request with new token
+            originalRequest.headers['Authorization'] = `Bearer ${token}`;
+            return api(originalRequest);
+          } catch (refreshError) {
+            // Only logout if we're online and the refresh truly failed
+            if (navigator.onLine) {
+              logout();
+            }
+            throw refreshError;
+          }
+        }
+
+        return Promise.reject(error);
+      }
+    );
+  },
+
+  // Add method to validate token expiration locally
+  isTokenValid: () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return false;
+
+      // Get the payload part of the JWT
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      // Check if token has expired
+      const expirationTime = payload.exp * 1000; // Convert to milliseconds
+      return Date.now() < expirationTime;
+    } catch (error) {
+      return false;
+    }
+  },
 };

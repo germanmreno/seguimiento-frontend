@@ -26,7 +26,7 @@ export const Layout = ({ children }) => {
   };
 
   return (
-    <div className={`min-h-[100vh] w-full bg-cover bg-scroll bg-no-repeat bg-center`} style={{ backgroundImage: `url(/background_logo.png)`, viewTransitionName: 'page' }} >
+    <div className={`min-h-[100vh] w-full bg-cover bg-scroll bg-no-repeat bg-center`} style={{ backgroundImage: `url(/background_logo.webp)`, viewTransitionName: 'page' }} >
       <NavBar />
       {!isHomePage && (
         <div className="container mx-auto pt-6">
