@@ -210,15 +210,15 @@ export const RegisterMemoPage = () => {
   return (
 
     <Layout>
-      <div className="container mx-auto py-10 divide-y flex justify-center">
-        <Card className="w-full max-w-4xl bg-white shadow-lg">
-          <CardHeader className="bg-[#24387d] rounded-t-lg">
-            <CardTitle className="text-sms text-left text-white primary-text">REGISTRO DE NUEVO OFICIO</CardTitle>
+      <div className="container mx-auto py-4 md:py-6 px-4 md:px-6 flex justify-center">
+        <Card className="shadow-lg w-full max-w-[1000px]">
+          <CardHeader className="bg-primary-blue mb-4 text-white p-4 md:p-6">
+            <CardTitle className="text-xl md:text-2xl font-bold">Registrar Nuevo Oficio</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-3">
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2 mt-2">
                     <FormField
                       control={form.control}
@@ -256,8 +256,8 @@ export const RegisterMemoPage = () => {
                     />
                   </div>
                   <div className="space-y-2 mt-2">
-                    <FormLabel className="primary-text">HORA DE RECEPCIÓN</FormLabel>
-                    <div className="flex items-center space-x-1">
+                    <FormLabel className="primary-text text-sm sm:text-base">HORA DE RECEPCIÓN</FormLabel>
+                    <div className="flex items-center space-x-1 overflow-x-auto">
                       <Controller
                         name="receptionHour"
                         control={form.control}
@@ -305,7 +305,7 @@ export const RegisterMemoPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
                     name="id"
@@ -373,12 +373,14 @@ export const RegisterMemoPage = () => {
                   name="reception_method"
                   render={({ field }) => (
                     <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="primary-text">RECIBIDO A TRAVÉS DE <span className="text-red-500 text-xl">*</span></FormLabel>
+                      <FormLabel className="primary-text text-sm sm:text-base">
+                        RECIBIDO A TRAVÉS DE <span className="text-red-500 text-xl">*</span>
+                      </FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
                           value={field.value}
-                          className="flex flex-col gap-4"
+                          className="flex flex-col sm:flex-row flex-wrap gap-4"
                         >
                           {receptionOptions.map((option) => (
                             <div className="flex items-center space-x-2" key={option.id}>
@@ -401,8 +403,10 @@ export const RegisterMemoPage = () => {
                   name="officeIds"
                   render={() => (
                     <FormItem className="space-y-4 col-span-full">
-                      <FormLabel className="text-lg primary-text">OFICINA(S) O GERENCIA(S) RESPONSABLE(S) <span className="text-red-500 text-xl">*</span></FormLabel>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <FormLabel className="text-sm sm:text-lg primary-text">
+                        OFICINA(S) O GERENCIA(S) RESPONSABLE(S) <span className="text-red-500 text-xl">*</span>
+                      </FormLabel>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {gerencyOptions.map((option) => (
                           <FormField
                             key={option.id}
@@ -484,13 +488,18 @@ export const RegisterMemoPage = () => {
                         <RadioGroup
                           onValueChange={field.onChange}
                           value={field.value}
-                          className="flex justify-center gap-5"
+                          className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-5"
                         >
                           {urgencyOptions.map((option) => (
                             <div className="flex items-center m-auto space-x-2" key={option.id}>
                               <RadioGroupItem value={option.id} id={option.id} />
                               <Label htmlFor={option.id}>
-                                <Badge variant={option.variant} className="text-sm">{option.label.toUpperCase()}</Badge>
+                                <Badge
+                                  variant={option.variant}
+                                  className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-3 py-1"
+                                >
+                                  {option.label.toUpperCase()}
+                                </Badge>
                               </Label>
                             </div>
                           ))}
@@ -504,56 +513,58 @@ export const RegisterMemoPage = () => {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="reception_images"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-lg primary-text">
-                        IMAGEN(ES) DE RECEPCIÓN <span className="text-red-500 text-xl">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="w-full flex flex-col gap-4">
-                          <input
-                            type="file"
-                            multiple
-                            accept="image/*,.pdf"
-                            onChange={handleReceptionFiles}
-                            className="hidden"
-                            id="reception-upload"
-                          />
-                          <label
-                            htmlFor="reception-upload"
-                            className="flex items-center max-w-80 justify-center px-4 py-2 bg-blue-400 text-white rounded cursor-pointer hover:bg-blue-600"
-                          >
-                            <FileImage size={24} className="mr-2" />
-                            <span>Adjuntar comprobante de recepción</span>
-                          </label>
-                          {receptionFiles.length > 0 && (
-                            <div className="mt-2">
-                              <h4 className="text-sm font-medium">Archivos seleccionados:</h4>
-                              <ul className="list-disc list-inside">
-                                {receptionFiles.map((file, index) => (
-                                  <li key={index} className="flex items-center gap-2 text-sm">
-                                    {file.type === 'application/pdf' ?
-                                      <FileText className="h-4 w-4" /> :
-                                      <FileImage className="h-4 w-4" />
-                                    }
-                                    {file.name}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormDescription>
-                        Añada el archivo comprobante de la recepción del oficio.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="reception_images"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="primary-text text-sm sm:text-base">
+                          IMÁGENES DE RECEPCIÓN <span className="text-red-500 text-xl">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="w-full flex flex-col gap-4">
+                            <input
+                              type="file"
+                              multiple
+                              accept="image/*,.pdf"
+                              onChange={handleReceptionFiles}
+                              className="hidden"
+                              id="reception-upload"
+                            />
+                            <label
+                              htmlFor="reception-upload"
+                              className="flex items-center max-w-80 justify-center px-4 py-2 bg-blue-400 text-white rounded cursor-pointer hover:bg-blue-600"
+                            >
+                              <FileImage size={24} className="mr-2" />
+                              <span>Adjuntar comprobante de recepción</span>
+                            </label>
+                            {receptionFiles.length > 0 && (
+                              <div className="mt-2">
+                                <h4 className="text-sm font-medium">Archivos seleccionados:</h4>
+                                <ul className="list-disc list-inside">
+                                  {receptionFiles.map((file, index) => (
+                                    <li key={index} className="flex items-center gap-2 text-sm">
+                                      {file.type === 'application/pdf' ?
+                                        <FileText className="h-4 w-4" /> :
+                                        <FileImage className="h-4 w-4" />
+                                      }
+                                      {file.name}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Añada el archivo comprobante de la recepción del oficio.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}
@@ -663,7 +674,9 @@ export const RegisterMemoPage = () => {
                   />
                 </div>
                 <div className="space-y-4 flex justify-center">
-                  <Button type="submit" className="w-[400px] h-[45px] bg-primary-green primary-text text-lg">Enviar</Button>
+                  <Button type="submit" className="w-full sm:w-[400px] h-[45px] bg-primary-green primary-text">
+                    Enviar
+                  </Button>
                 </div>
               </form>
             </Form>

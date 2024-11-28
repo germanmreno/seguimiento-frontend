@@ -129,18 +129,35 @@ export const forumsService = {
 
   deleteForumMessage: async (forumId, messageId, userId) => {
     try {
-      await api.delete(`/forums/${forumId}/messages/${messageId}`, {
-        data: { user_id: userId },
-      });
+      const response = await api.delete(
+        `/forums/${forumId}/messages/${messageId}`,
+        {
+          data: { user_id: userId },
+        }
+      );
+
+      // Wait a moment before returning to ensure the deletion is complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       return { success: true, message: 'Mensaje eliminado correctamente' };
     } catch (error) {
-      console.error('Error deleting message:', error);
-      throw error.response?.data || { error: 'Error al eliminar el mensaje' };
+      // Only throw if it's a real error, not a 404
+      if (error.response?.status !== 404) {
+        console.error('Error deleting message:', error);
+        throw error.response?.data || { error: 'Error al eliminar el mensaje' };
+      }
+      // If it's a 404, still return success since the message is gone
+      return { success: true, message: 'Mensaje eliminado correctamente' };
     }
   },
 
   createForum: async (forumData, user) => {
     try {
+      // Validate input
+      if (!forumData.title || !forumData.description || !forumData.memo_id) {
+        throw new Error('Missing required fields');
+      }
+
       const response = await api.post('/forums', {
         ...forumData,
         user_id: {
@@ -149,10 +166,14 @@ export const forumsService = {
           office_id: user.office_id,
         },
       });
+
       return response.data;
     } catch (error) {
       console.error('Error creating forum:', error);
-      throw error;
+      if (error.response?.data?.details) {
+        throw new Error(error.response.data.details);
+      }
+      throw new Error('Error al crear el foro. Por favor, intente nuevamente.');
     }
   },
 
@@ -163,10 +184,20 @@ export const forumsService = {
           'Content-Type': 'multipart/form-data',
         },
       });
-      return response.data;
+
+      // If we got a response with data or success=true, consider it successful
+      if (response.data && (response.data.id || response.data.success)) {
+        return response.data;
+      }
+
+      throw new Error('Failed to send message');
     } catch (error) {
       console.error('Error sending message:', error);
-      throw error;
+      // Only throw if it's a real error
+      if (!error.response?.data?.success) {
+        throw error;
+      }
+      return { success: true };
     }
   },
 

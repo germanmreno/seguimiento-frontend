@@ -206,3 +206,13 @@ label:has(+ input:required):after {
   width: 1px;
   background-color: #e5e7eb;
 }
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

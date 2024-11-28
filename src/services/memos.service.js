@@ -87,19 +87,28 @@ export const memosService = {
   },
 
   assignInstruction: async (id, instruction, officeIds, user) => {
-    const response = await api.patch(`/memos/${id}/instruction`, {
-      instruction,
-      officeIds,
-      user,
-    });
-    return response.data;
+    try {
+      const response = await api.patch(`/memos/${id}/instruction`, {
+        instruction,
+        officeIds,
+        user,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error in assignInstruction:', error);
+      // If the memo was updated but notifications failed, we can still consider it a success
+      if (error.response?.data?.details?.includes('notification')) {
+        console.warn('Instruction assigned but notification failed');
+        return error.response.data;
+      }
+      throw error;
+    }
   },
 
   getAllMemosWithFilters: async (userData, params = {}) => {
     try {
       const response = await api.get('/memos', { params });
 
-      // Process memos based on user role and instruction status
       let filteredMemos = await Promise.all(
         response.data.map(async (memo) => {
           try {
@@ -109,6 +118,12 @@ export const memosService = {
             const forumDetails = forumExistence.exists
               ? await forumsService.getForum(forumExistence.id)
               : null;
+
+            const hasFullAccess =
+              userData.role === 'ADMIN' ||
+              userData.office_id === '110' || // SEGUIMIENTO Y CONTROL
+              userData.office_id === '101' || // VICEPRESIDENCIA
+              userData.office_id === '100'; // PRESIDENCIA
 
             const memoWithForum = {
               ...memo,
@@ -121,7 +136,7 @@ export const memosService = {
                     createdAt: forumDetails.createdAt,
                     updatedAt: forumDetails.updatedAt,
                     canAccess:
-                      userData.role === 'ADMIN' ||
+                      hasFullAccess ||
                       memo.offices.some(
                         (office) => office.office_id === userData.office_id
                       ),
@@ -129,16 +144,7 @@ export const memosService = {
                 : null,
             };
 
-            // Return null for memos that should be filtered out
-            if (
-              memo.instruction_status === 'PENDING' &&
-              !['ADMIN', 'VICEPRESIDENCIA', 'PRESIDENCIA'].includes(
-                userData.role
-              ) &&
-              userData.office_id !== '101' && // VICEPRESIDENCIA
-              userData.office_id !== '100'
-            ) {
-              // PRESIDENCIA
+            if (memo.instruction_status === 'PENDING' && !hasFullAccess) {
               return null;
             }
 
@@ -150,7 +156,6 @@ export const memosService = {
         })
       );
 
-      // Filter out null values and return
       return filteredMemos.filter((memo) => memo !== null);
     } catch (error) {
       console.error('Error fetching memos:', error);

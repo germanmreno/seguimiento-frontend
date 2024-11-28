@@ -11,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const TabHeader = ({ office }) => {
-  // Get initials if name is too long (e.g., "Gerencia de Administración" -> "GA")
   const getInitials = (name) => {
     return name
       .split(' ')
@@ -22,10 +21,16 @@ const TabHeader = ({ office }) => {
 
   return (
     <div className="flex flex-col items-center">
-      {/* Show full name on larger screens, initials on mobile */}
-      <span className="hidden md:block text-xs font-medium">{office.name}</span>
-      <span className="md:hidden text-xs font-medium">{getInitials(office.name)}</span>
-      <span className="text-[10px] text-gray-400">{office.abrev}</span>
+      <span className="sm:hidden text-xs font-medium">
+        {office.abrev || getInitials(office.name)}
+      </span>
+
+      <div className="hidden sm:flex flex-col items-center">
+        <span className="text-xs font-medium">{office.name}</span>
+        <span className="text-[10px] text-gray-600">
+          ({office.abrev || getInitials(office.name)})
+        </span>
+      </div>
     </div>
   );
 };
@@ -33,7 +38,13 @@ const TabHeader = ({ office }) => {
 export const MemoTabs = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [currentTab, setCurrentTab] = useState(user.role === 'ADMIN' ? 'all' : String(user.office_id));
+  const hasFullAccess =
+    user.role === 'ADMIN' ||
+    user.office_id === '110' || // SEGUIMIENTO Y CONTROL
+    user.office_id === '101' || // VICEPRESIDENCIA
+    user.office_id === '100';   // PRESIDENCIA
+
+  const [currentTab, setCurrentTab] = useState(hasFullAccess ? 'all' : String(user.office_id));
   const [memos, setMemos] = useState([]);
   const [offices, setOffices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,16 +56,15 @@ export const MemoTabs = () => {
   useEffect(() => {
     const loadOffices = async () => {
       try {
-        if (user.role === 'ADMIN') {
+        if (hasFullAccess) {
           const officesData = await memosService.getOffices();
           setOffices(officesData);
         } else {
-          // For regular users, first get all offices to ensure we have the correct data
           const officesData = await memosService.getOffices();
           const userOffice = officesData.find(office => office.id === user.office_id);
           if (userOffice) {
             setOffices([userOffice]);
-            setCurrentTab(user.office_id); // Ensure we set the correct tab
+            setCurrentTab(user.office_id);
           } else {
             throw new Error('Oficina no encontrada');
           }
@@ -68,7 +78,7 @@ export const MemoTabs = () => {
     };
 
     loadOffices();
-  }, [user]);
+  }, [user, hasFullAccess]);
 
   useEffect(() => {
     if (!loadingOffices) {
@@ -97,7 +107,7 @@ export const MemoTabs = () => {
         return;
       }
 
-      if (user?.role !== 'ADMIN') {
+      if (!hasFullAccess) {
         params.office_id = user.office_id;
       } else if (tabValue !== 'all') {
         params.office_id = tabValue;
@@ -128,7 +138,8 @@ export const MemoTabs = () => {
   const canSeePendingTab =
     user.role === 'ADMIN' ||
     user.office_id === '101' || // VICEPRESIDENCIA
-    user.office_id === '100';   // PRESIDENCIA
+    user.office_id === '100' || // PRESIDENCIA
+    user.office_id === '110';   // SEGUIMIENTO Y CONTROL
 
   const getFilteredMemos = (tabValue) => {
     if (!Array.isArray(memos)) return [];
@@ -146,10 +157,10 @@ export const MemoTabs = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-4 sm:py-10 px-2 sm:px-4">
         <div className="flex flex-col">
-          <div className="bg-[#24387d] text-white rounded-t-lg w-full h-12 flex items-center justify-between p-4">
-            <h1 className="primary-text">
+          <div className="bg-[#24387d] text-white rounded-t-lg w-full min-h-[48px] flex items-center justify-between p-2 sm:p-4">
+            <h1 className="primary-text text-sm sm:text-base md:text-lg text-center w-full">
               CORRESPONDENCIAS DE LA CORPORACIÓN VENEZOLANA DE MINERÍA
             </h1>
           </div>
@@ -160,42 +171,59 @@ export const MemoTabs = () => {
             <div className="text-red-500 p-4">{error}</div>
           ) : (
             <Tabs
-              defaultValue={user.role === 'ADMIN' ? 'all' : String(user.office_id)}
+              defaultValue={hasFullAccess ? 'all' : String(user.office_id)}
               value={currentTab}
               onValueChange={handleTabChange}
               className="w-full border-x-2 border-b-2 border-gray"
             >
-              <div className="flex items-center justify-between bg-gray-100 p-2 overflow-x-auto">
-                <TabsList className={`${tabStyles.container} h-auto gap-1 flex-wrap p-1`}>
-                  {user.role === 'ADMIN' && (
+              <div className="bg-gray-100 px-2 py-3 sm:px-3 border-b border-gray min-h-[60px] sm:min-h-[70px]">
+                <TabsList className="flex flex-nowrap sm:flex-wrap gap-1 sm:gap-2 bg-transparent 
+                                   overflow-x-auto sm:overflow-x-visible h-full">
+                  {hasFullAccess && (
                     <TabsTrigger
                       value="all"
-                      className={`${tabStyles.default} ${tabStyles.separator} px-4 py-2 rounded-md shadow-sm`}
+                      className="flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-sm 
+                               rounded-md shadow-sm data-[state=active]:bg-[#24387d] 
+                               data-[state=active]:text-white hover:bg-gray-100 
+                               transition-colors bg-white h-full"
                     >
-                      Todos
+                      <span className="sm:hidden">TODO</span>
+                      <span className="hidden sm:block">TODOS</span>
                     </TabsTrigger>
                   )}
+
                   {canSeePendingTab && (
                     <TabsTrigger
                       value="pending"
-                      className={`${tabStyles.default} ${tabStyles.separator} px-4 py-2 rounded-md shadow-sm relative`}
+                      className="flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-sm 
+                               rounded-md shadow-sm data-[state=active]:bg-[#24387d] 
+                               data-[state=active]:text-white hover:bg-gray-100 
+                               transition-colors bg-white relative"
                     >
-                      <div className="flex items-center gap-2">
-                        <span>PENDIENTES POR ASIGNAR</span>
+                      <div className="flex items-center gap-1">
+                        <span className="sm:hidden">PEND</span>
+                        <span className="hidden sm:block">PENDIENTES</span>
                         {pendingCount > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 
+                                         bg-red-500 text-white text-[8px] sm:text-xs 
+                                         rounded-full w-3 h-3 sm:w-5 sm:h-5 
+                                         flex items-center justify-center">
                             {pendingCount}
                           </span>
                         )}
                       </div>
                     </TabsTrigger>
                   )}
+
                   {offices.map(office => (
                     <TabsTrigger
                       key={office.id}
                       value={String(office.id)}
-                      disabled={user.role !== 'ADMIN' && office.id !== user.office_id}
-                      className={`${tabStyles.default} ${tabStyles.separator} px-4 py-2 rounded-md shadow-sm`}
+                      disabled={!hasFullAccess && office.id !== user.office_id}
+                      className="flex-shrink-0 px-3 sm:px-4 py-1 sm:py-1.5 text-[10px] sm:text-sm 
+                               rounded-md shadow-sm data-[state=active]:bg-[#24387d] 
+                               data-[state=active]:text-white hover:bg-gray-100 
+                               transition-colors bg-white"
                     >
                       <TabHeader office={office} />
                     </TabsTrigger>
@@ -203,29 +231,35 @@ export const MemoTabs = () => {
                 </TabsList>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="mt-4 px-2 sm:px-4">
                 {canSeePendingTab && (
-                  <TabsContent value="pending">
-                    <DataTable
-                      columns={columns({ navigate, toast, setRefresh })}
-                      data={getFilteredMemos('pending')}
-                    />
+                  <TabsContent value="pending" className="min-w-full">
+                    <div className="overflow-x-auto">
+                      <DataTable
+                        columns={columns({ navigate, toast, setRefresh })}
+                        data={getFilteredMemos('pending')}
+                      />
+                    </div>
                   </TabsContent>
                 )}
-                {user.role === 'ADMIN' && (
-                  <TabsContent value="all">
-                    <DataTable
-                      columns={columns({ navigate, toast, setRefresh })}
-                      data={getFilteredMemos('all')}
-                    />
+                {hasFullAccess && (
+                  <TabsContent value="all" className="min-w-full">
+                    <div className="overflow-x-auto">
+                      <DataTable
+                        columns={columns({ navigate, toast, setRefresh })}
+                        data={getFilteredMemos('all')}
+                      />
+                    </div>
                   </TabsContent>
                 )}
                 {offices.map(office => (
-                  <TabsContent key={office.id} value={String(office.id)}>
-                    <DataTable
-                      columns={columns({ navigate, toast, setRefresh })}
-                      data={getFilteredMemos(office.id)}
-                    />
+                  <TabsContent key={office.id} value={String(office.id)} className="min-w-full">
+                    <div className="overflow-x-auto">
+                      <DataTable
+                        columns={columns({ navigate, toast, setRefresh })}
+                        data={getFilteredMemos(office.id)}
+                      />
+                    </div>
                   </TabsContent>
                 ))}
               </div>

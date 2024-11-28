@@ -67,36 +67,70 @@ export const MainPage = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <ImageCarousel />
-      <div className="flex space-x-16 justify-center items-center w-full mt-12">
-        <Button
-          variant="outline"
-          className="flex flex-col h-36 w-52 rounded-lg p-1 button-gradient shadow-xl hover:scale-105 transition-transform"
-          onClick={() => handleNavigation("/forums")}
-        >
-          <img src="/button_forums.png" alt="registro" className="h-[80px]" />
-          <h1 className="primary-text text-lg mb-2">Foros</h1>
-        </Button>
+      <div className="flex flex-col min-h-[calc(100vh-250px)]">
+        <div className="flex-none w-full">
+          <ImageCarousel />
+        </div>
 
-        <Button
-          variant="outline"
-          className="flex flex-col h-36 w-72 rounded-lg p-1 button-gradient shadow-xl hover:scale-105 transition-transform"
-          onClick={() => handleNavigation("/memos")}
-        >
-          <img src="/button_add.png" alt="registro" className="h-[80px]" />
-          <h2 className="primary-text text-lg mb-2">Correspondencias</h2>
-        </Button>
+        <div className="flex-1 flex items-center justify-center w-full px-2">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-6 w-full max-w-[1200px]">
+            <Button
+              variant="outline"
+              className="flex flex-col h-16 sm:h-32 md:h-36 
+                       w-full sm:w-44 md:w-52 max-w-[280px]
+                       rounded-lg p-1 button-gradient shadow-xl 
+                       hover:scale-105 transition-transform"
+              onClick={() => handleNavigation("/forums")}
+            >
+              <img
+                src="/button_forums.png"
+                alt="registro"
+                className="h-[30px] sm:h-[60px] md:h-[80px] object-contain"
+              />
+              <h1 className="primary-text text-xs sm:text-base md:text-lg mb-1">
+                Foros
+              </h1>
+            </Button>
 
-        {user.role === 'ADMIN' && (
-          <Button
-            variant="outline"
-            className="flex flex-col h-36 w-52 rounded-lg p-1 button-gradient shadow-xl hover:scale-105 transition-transform"
-            onClick={() => handleNavigation("/admin")}
-          >
-            <img src="/icon_support.png" alt="admin" className="h-[80px]" />
-            <h2 className="primary-text text-lg mb-2">Administración</h2>
-          </Button>
-        )}
+            <Button
+              variant="outline"
+              className="flex flex-col h-16 sm:h-32 md:h-36 
+                       w-full sm:w-44 md:w-72 max-w-[280px]
+                       rounded-lg p-1 button-gradient shadow-xl 
+                       hover:scale-105 transition-transform"
+              onClick={() => handleNavigation("/memos")}
+            >
+              <img
+                src="/button_add.png"
+                alt="registro"
+                className="h-[30px] sm:h-[60px] md:h-[80px] object-contain"
+              />
+              <h2 className="primary-text text-xs sm:text-base md:text-lg mb-1">
+                Correspondencias
+              </h2>
+            </Button>
+
+            {user.role === 'ADMIN' && (
+              <Button
+                variant="outline"
+                className="flex flex-col h-16 sm:h-32 md:h-36 
+                         w-full sm:w-44 md:w-52 max-w-[280px]
+                         rounded-lg p-1 button-gradient shadow-xl 
+                         hover:scale-105 transition-transform"
+                onClick={() => handleNavigation("/admin")}
+              >
+                <img
+                  src="/icon_support.png"
+                  alt="admin"
+                  className="h-[30px] sm:h-[60px] md:h-[80px] object-contain"
+                />
+                <h2 className="primary-text text-xs sm:text-base md:text-lg mb-1">
+                  Administración
+                </h2>
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </Layout>
   );

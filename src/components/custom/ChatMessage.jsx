@@ -40,7 +40,12 @@ export const ChatMessage = ({ message = {}, onDelete, currentUserId }) => {
 
   const FilePreview = ({ fileUrl, fileName }) => {
     const Icon = getFileIcon(fileName);
-    const fullFileUrl = `http://localhost:3005${fileUrl}`
+
+    // Extract just the relative path from the full server path
+    const relativePath = fileUrl.split('/uploads/')[1];
+    const fullFileUrl = `http://172.16.2.51:3005/uploads/${relativePath}`;
+
+    console.log('File URL:', fullFileUrl);
 
     if (isImageFile(fileName)) {
       return (

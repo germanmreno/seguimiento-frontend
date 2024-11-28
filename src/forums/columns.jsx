@@ -368,14 +368,25 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       );
     },
     cell: ({ row }) => {
-      const date = row.original.reception_date
+      const date = row.original.reception_date;
 
-      const formatDate = (date) => {
-        const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-        return new Date(date).toLocaleDateString('es-ES', options);
+      const formatDate = (dateString) => {
+        // Parse the date and adjust for timezone
+        const date = new Date(dateString);
+        // Add the timezone offset to get the correct date
+        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+
+        const options = {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          timeZone: 'UTC' // Force UTC to prevent timezone conversion
+        };
+
+        return date.toLocaleDateString('es-ES', options);
       };
 
-      return <div className="font-medium ">{formatDate(date)}</div>
+      return <div className="font-medium">{formatDate(date)}</div>;
     },
   },
   {
@@ -504,10 +515,10 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       const handleViewImage = (image) => {
         console.log(image)
         if (image.isPdf) {
-          window.open(`http://localhost:3005/${image.path}`, '_blank');
+          window.open(`${image.path}`, '_blank');
           return;
         }
-        const imageUrl = `http://localhost:3005/${image.path}`;
+        const imageUrl = `${image.path}`;
         window.open(imageUrl, '_blank', 'width=800,height=600');
       };
 
@@ -553,7 +564,7 @@ export const columns = ({ navigate, toast, setRefresh }) => [
         // Format the path to ensure proper URL structure
         const formattedPath = file.path.replace(/\\/g, '/');
         // Add forward slash between base URL and path if needed
-        const fileUrl = `http://localhost:3005/${formattedPath.startsWith('/') ? formattedPath.slice(1) : formattedPath}`;
+        const fileUrl = `${formattedPath.startsWith('/') ? formattedPath.slice(1) : formattedPath}`;
 
         if (file.type === 'application/pdf') {
           window.open(fileUrl, '_blank');
