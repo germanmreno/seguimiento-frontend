@@ -88,7 +88,7 @@ export const MemoDetailsPage = () => {
     setFileLoading(true);
     try {
       const cleanPath = file.path.replace(/\\/g, '/').replace(/^\/+/, '');
-      const fileUrl = `${cleanPath}`;
+      const fileUrl = `${import.meta.env.VITE_API_URL || ''}/${cleanPath}`;
 
       if (file.type === 'application/pdf') {
         window.open(fileUrl, '_blank', 'noopener,noreferrer');

@@ -5,9 +5,10 @@ import { ImageCarousel } from "../components/custom"
 import { Layout } from "../layout/layout"
 import { useAuth } from "../contexts/AuthContext";
 import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog"
-import { CheckCircle2 } from "lucide-react";
+import { BookOpen, CheckCircle2, FileArchive, FileCheck, Settings } from "lucide-react";
 import { useViewTransition } from '../hooks/useViewTransition';
 import { memosService } from "@/services/memos.service";
+import { FileText } from "lucide-react";
 
 export const MainPage = () => {
   const navigate = useNavigate();
@@ -73,21 +74,21 @@ export const MainPage = () => {
         </div>
 
         <div className="flex-1 flex items-center justify-center w-full px-2">
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-6 w-full max-w-[1200px]">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-8 w-full max-w-[1200px]">
             <Button
               variant="outline"
               className="flex flex-col h-16 sm:h-32 md:h-36 
                        w-full sm:w-44 md:w-52 max-w-[280px]
-                       rounded-lg p-1 button-gradient shadow-xl 
+                       rounded-lg button-gradient shadow-xl 
                        hover:scale-105 transition-transform"
               onClick={() => handleNavigation("/forums")}
             >
-              <img
-                src="/button_forums.png"
+              <BookOpen
                 alt="registro"
                 className="h-[30px] sm:h-[60px] md:h-[80px] object-contain"
+                size={40}
               />
-              <h1 className="primary-text text-xs sm:text-base md:text-lg mb-1">
+              <h1 className="primary-text text-xs mb-1">
                 Foros
               </h1>
             </Button>
@@ -95,18 +96,54 @@ export const MainPage = () => {
             <Button
               variant="outline"
               className="flex flex-col h-16 sm:h-32 md:h-36 
-                       w-full sm:w-44 md:w-72 max-w-[280px]
-                       rounded-lg p-1 button-gradient shadow-xl 
-                       hover:scale-105 transition-transform"
+                         w-full sm:w-44 md:w-52 max-w-[280px]
+                         rounded-lg p-1 button-gradient shadow-xl 
+                         hover:scale-105 transition-transform"
               onClick={() => handleNavigation("/memos")}
             >
-              <img
-                src="/button_add.png"
-                alt="registro"
+              <FileArchive
+                alt="correspondencia"
                 className="h-[30px] sm:h-[60px] md:h-[80px] object-contain"
+                size={40}
               />
-              <h2 className="primary-text text-xs sm:text-base md:text-lg mb-1">
+              <h2 className="primary-text text-xs mb-1">
                 Correspondencias
+              </h2>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="flex flex-col h-16 sm:h-32 md:h-36 
+                         w-full sm:w-44 md:w-52 max-w-[280px]
+                         rounded-lg p-1 button-gradient shadow-xl 
+                         hover:scale-105 transition-transform"
+              onClick={() => handleNavigation("/puntos-cuenta")}
+            >
+              <FileText
+                alt="Puntos de Cuenta"
+                className="h-[30px] sm:h-[60px] md:h-[80px] object-contain"
+                size={40}
+              />
+              <h2 className="primary-text text-xs mb-1">
+                Puntos de Cuenta
+              </h2>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="flex flex-col h-16 sm:h-32 md:h-36 
+                         w-full sm:w-44 md:w-52 max-w-[280px]
+                         rounded-lg p-1 button-gradient shadow-xl 
+                         hover:scale-105 transition-transform"
+              onClick={() => handleNavigation("/oficios-presidencia")}
+            >
+              <FileCheck
+                alt="Oficios de Presidencia"
+                className="h-[30px] sm:h-[60px] md:h-[80px]"
+                size={40}
+              />
+              <h2 className="primary-text text-xs mb-1">
+                Oficios de Presidencia
               </h2>
             </Button>
 
@@ -119,17 +156,18 @@ export const MainPage = () => {
                          hover:scale-105 transition-transform"
                 onClick={() => handleNavigation("/admin")}
               >
-                <img
-                  src="/icon_support.png"
+                <Settings
                   alt="admin"
                   className="h-[30px] sm:h-[60px] md:h-[80px] object-contain"
+                  size={40}
                 />
-                <h2 className="primary-text text-xs sm:text-base md:text-lg mb-1">
+                <h2 className="primary-text text-xs mb-1">
                   Administración
                 </h2>
               </Button>
             )}
           </div>
+
         </div>
       </div>
     </Layout>

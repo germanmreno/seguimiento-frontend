@@ -14,6 +14,12 @@ import { AdministrationPanel } from './pages/AdministrationPanel'
 import { MemoTabs } from './components/admin/MemoTabs'
 import { MemoDetailsPage } from './pages/MemoDetailsPage'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { SendMemoPage } from './pages/SendMemoPage'
+import { VerifyMemoPage } from './pages/VerifyMemoPage'
+import { PuntosCuentaPage } from './pages/PuntosCuentaPage'
+import { RegisterPuntoCuentaPage } from './pages/RegisterPuntoCuentaPage'
+import { OficiosPresidenciaPage } from './pages/OficiosPresidenciaPage'
+import { RegisterOficioPresidenciaPage } from './pages/RegisterOficioPresidenciaPage'
 
 const router = createBrowserRouter([
   {
@@ -40,6 +46,10 @@ const router = createBrowserRouter([
         element: <RegisterMemoPage />
       },
       {
+        path: "/send-memo",
+        element: <SendMemoPage />
+      },
+      {
         path: "/memos/:id/assign-instruction",
         element: <AssignInstructionPage />
       },
@@ -62,8 +72,28 @@ const router = createBrowserRouter([
       {
         path: "/admin",
         element: <AdministrationPanel />
+      },
+      {
+        path: "/puntos-cuenta",
+        element: <PuntosCuentaPage />
+      },
+      {
+        path: "/register-punto-cuenta",
+        element: <RegisterPuntoCuentaPage />
+      },
+      {
+        path: "/oficios-presidencia",
+        element: <OficiosPresidenciaPage />
+      },
+      {
+        path: "/register-oficio-presidencia",
+        element: <RegisterOficioPresidenciaPage />
       }
     ]
+  },
+  {
+    path: "/verify/:id",
+    element: <VerifyMemoPage />
   },
   {
     path: "*",

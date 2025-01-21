@@ -515,6 +515,8 @@ export const RegisterMemoPage = () => {
 
                 <div className="space-y-4">
                   <FormField
+                    
+                    
                     control={form.control}
                     name="reception_images"
                     render={({ field }) => (

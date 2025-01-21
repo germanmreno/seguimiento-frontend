@@ -372,7 +372,7 @@ export const AssignInstructionPage = () => {
                           SELECCIONAR INSTRUCCIÓN <span className="text-red-500 text-xl">*</span>
                         </FormLabel>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-2">
-                          {[...instructionOptions, { id: 'OTHER', label: 'OTRA' }].map((option) => (
+                          {[...instructionOptions].map((option) => (
                             <FormField
                               key={option.id}
                               control={form.control}

@@ -15,6 +15,10 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { forumsService } from "@/services/forums.service";
 import { Button } from "@/components/ui/button";
 
+const canManageForumStatus = (user) => {
+  return user.role === 'ADMIN' || user.office_id === '110';
+};
+
 export const ForumPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -135,7 +139,7 @@ export const ForumPage = () => {
                         <span className="text-sm sm:text-base font-medium">Foro Cerrado</span>
                       </div>
                     )}
-                    {user.role === 'ADMIN' && (
+                    {canManageForumStatus(user) && (
                       <Button
                         onClick={handleForumStatusChange}
                         className={cn(
