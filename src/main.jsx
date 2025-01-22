@@ -13,6 +13,7 @@ import { ForumsPage } from './pages/ForumsPage'
 import { AdministrationPanel } from './pages/AdministrationPanel'
 import { MemoTabs } from './components/admin/MemoTabs'
 import { MemoDetailsPage } from './pages/MemoDetailsPage'
+import { MemoExcelPage } from './pages/MemoExcelPage'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SendMemoPage } from './pages/SendMemoPage'
 import { VerifyMemoPage } from './pages/VerifyMemoPage'
@@ -72,6 +73,10 @@ const router = createBrowserRouter([
       {
         path: "/admin",
         element: <AdministrationPanel />
+      },
+      {
+        path: "/memos/:id/excel",
+        element: <MemoExcelPage />
       },
       {
         path: "/puntos-cuenta",

@@ -42,10 +42,11 @@ import {
 } from "@/components/ui/command"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const formSchema = z.object({
   numero: z.string().min(2, "El número de oficio es requerido"),
-  elaboradoPor: z.string().min(2, "El elaborador es requerido"),
+  elaboradoPor: z.array(z.string()).min(1, "Debe seleccionar al menos una oficina"),
   institucion: z.string().min(2, "La institución es requerida"),
   destinatario: z.string().min(2, "El destinatario es requerido"),
   asunto: z.string().min(2, "El asunto es requerido"),
@@ -77,7 +78,7 @@ export const RegisterOficioPresidenciaPage = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       numero: "",
-      elaboradoPor: "",
+      elaboradoPor: [],
       institucion: "",
       destinatario: "",
       asunto: "",
@@ -117,16 +118,12 @@ export const RegisterOficioPresidenciaPage = () => {
       setSubmitting(true)
       const formData = new FormData()
 
-      // Validate office selection before submission
-      if (!offices.find(office => office.id === data.elaboradoPor)) {
-        toast.error("Por favor seleccione una oficina válida")
-        return
-      }
-
       // Append form fields
       Object.keys(data).forEach(key => {
         if (key === 'fechaElaboracion' || key === 'fechaEntrega') {
           formData.append(key, data[key].toISOString())
+        } else if (key === 'elaboradoPor') {
+          formData.append(key, JSON.stringify(data[key]))
         } else if (key !== 'documento_escaneado') {
           formData.append(key, data[key])
         }
@@ -155,7 +152,7 @@ export const RegisterOficioPresidenciaPage = () => {
   const resetForm = () => {
     form.reset({
       numero: "",
-      elaboradoPor: "",
+      elaboradoPor: [],
       institucion: "",
       destinatario: "",
       asunto: "",
@@ -220,85 +217,48 @@ export const RegisterOficioPresidenciaPage = () => {
                   <FormField
                     control={form.control}
                     name="elaboradoPor"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="primary-text">
+                    render={() => (
+                      <FormItem className="space-y-4 col-span-full">
+                        <FormLabel className="text-sm sm:text-lg primary-text">
                           ELABORADO POR <span className="text-red-500 text-xl">*</span>
                         </FormLabel>
-                        <Popover open={openOffice} onOpenChange={setOpenOffice}>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={openOffice}
-                                className={cn(
-                                  "w-full justify-between",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                                disabled={loadingOffices}
-                              >
-                                {loadingOffices ? (
-                                  <div className="flex items-center">
-                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                    Cargando oficinas...
-                                  </div>
-                                ) : field.value ? (
-                                  offices.find((office) => office.id === field.value)?.name ||
-                                  "Oficina no encontrada"
-                                ) : (
-                                  "Seleccione la oficina"
-                                )}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-full p-0">
-                            <Command>
-                              <CommandInput
-                                placeholder={loadingOffices ? "Cargando..." : "Buscar oficina..."}
-                                disabled={loadingOffices}
-                              />
-                              <CommandEmpty>
-                                {loadingOffices ? (
-                                  <div className="flex items-center justify-center p-4">
-                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                    Cargando...
-                                  </div>
-                                ) : (
-                                  "No se encontró la oficina."
-                                )}
-                              </CommandEmpty>
-                              <CommandGroup>
-                                {offices.map((office) => (
-                                  <CommandItem
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {offices.map((office) => (
+                            <FormField
+                              key={office.id}
+                              control={form.control}
+                              name="elaboradoPor"
+                              render={({ field }) => {
+                                return (
+                                  <FormItem
                                     key={office.id}
-                                    value={office.id}
-                                    onSelect={() => {
-                                      form.setValue("elaboradoPor", office.id)
-                                      setOpenOffice(false)
-                                    }}
+                                    className="flex flex-row items-start space-x-3 space-y-0"
                                   >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        field.value === office.id
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                      )}
-                                    />
-                                    {office.name}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(office.id)}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([...field.value, office.id])
+                                            : field.onChange(
+                                              field.value?.filter(
+                                                (value) => value !== office.id
+                                              )
+                                            )
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-sm">
+                                      {office.name}
+                                    </FormLabel>
+                                  </FormItem>
+                                )
+                              }}
+                            />
+                          ))}
+                        </div>
                         <FormDescription>
-                          {loadingOffices
-                            ? "Cargando lista de oficinas..."
-                            : "Seleccione la oficina que elabora el oficio"
-                          }
+                          Seleccione la(s) oficina(s) que elabora(n) el oficio
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

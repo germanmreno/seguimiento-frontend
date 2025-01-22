@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button"
 import { formatDate } from "@/lib/utils"
 import { FileText } from "lucide-react"
+import { puntosCuentaService } from "@/services/puntosCuenta.service"
+import { Badge } from "@/components/ui/badge"
+import { format } from "date-fns"
 
-export const columns = ({ navigate }) => [
+export const columns = ({ offices }) => [
   {
     accessorKey: "numero",
     header: "Número",
@@ -11,31 +14,40 @@ export const columns = ({ navigate }) => [
     ),
   },
   {
-    accessorKey: "tipo",
-    header: "Tipo",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("tipo")}</div>
-    ),
-  },
-  {
     accessorKey: "fecha",
     header: "Fecha",
-    cell: ({ row }) => formatDate(row.getValue("fecha")),
+    cell: ({ row }) => format(new Date(row.getValue("fecha")), "dd/MM/yyyy"),
   },
   {
     accessorKey: "presentante",
     header: "Presentante",
-    cell: ({ row }) => (
-      <div className="max-w-[200px] truncate">
-        {row.getValue("presentante")}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const presentantes = row.getValue("presentante") || [];
+
+      if (!Array.isArray(presentantes) || presentantes.length === 0) {
+        return <div className="text-gray-500">-</div>;
+      }
+
+      return (
+        <div className="flex flex-wrap gap-1">
+          {presentantes.map((officeId, index) => (
+            <Badge
+              key={index}
+              variant="secondary"
+              className="bg-blue-50"
+            >
+              {offices[officeId] || `Oficina ${officeId}`}
+            </Badge>
+          ))}
+        </div>
+      )
+    },
   },
   {
     accessorKey: "asunto",
     header: "Asunto",
     cell: ({ row }) => (
-      <div className="max-w-[300px] truncate">
+      <div className="max-w-[300px] truncate" title={row.getValue("asunto")}>
         {row.getValue("asunto")}
       </div>
     ),
@@ -45,15 +57,19 @@ export const columns = ({ navigate }) => [
     header: "Decisión",
     cell: ({ row }) => {
       const decision = row.getValue("decision")
+      const variants = {
+        PENDIENTE: "bg-yellow-50 text-yellow-700 border-yellow-200",
+        APROBADO: "bg-green-50 text-green-700 border-green-200",
+        RECHAZADO: "bg-red-50 text-red-700 border-red-200",
+      }
+
       return (
-        <div className={`
-          inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-          ${decision === 'APROBADO' ? 'bg-green-100 text-green-800' : ''}
-          ${decision === 'EN REVISIÓN' ? 'bg-yellow-100 text-yellow-800' : ''}
-          ${decision === 'DIFERIDO' ? 'bg-red-100 text-red-800' : ''}
-        `}>
-          {decision}
-        </div>
+        <Badge
+          variant="secondary"
+          className={variants[decision] || "bg-gray-50 text-gray-700 border-gray-200"}
+        >
+          {decision || 'N/A'}
+        </Badge>
       )
     },
   },
@@ -61,37 +77,28 @@ export const columns = ({ navigate }) => [
     accessorKey: "documento_escaneado",
     header: "Documento",
     cell: ({ row }) => {
-      const documentUrl = row.getValue("documento_escaneado")
-      return documentUrl ? (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="flex items-center text-blue-500 hover:text-blue-700"
-            onClick={() => window.open(documentUrl, '_blank')}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Ver documento
-          </Button>
-        </div>
+      const docPath = row.getValue("documento_escaneado");
+      return docPath ? (
+        <a
+          href={docPath}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline"
+        >
+          Ver documento
+        </a>
       ) : (
-        <div className="text-center text-gray-500">Sin documento</div>
-      )
+        <span className="text-gray-500">-</span>
+      );
     },
   },
   {
-    id: "actions",
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="link"
-            className="text-blue-500 hover:text-blue-700"
-            onClick={() => navigate(`/puntos-cuenta/${row.original.id}`)}
-          >
-            Ver detalles
-          </Button>
-        </div>
-      )
-    },
+    accessorKey: "observacion",
+    header: "Observación",
+    cell: ({ row }) => (
+      <div className="max-w-[300px] truncate" title={row.getValue("observacion")}>
+        {row.getValue("observacion") || '-'}
+      </div>
+    ),
   },
 ] 

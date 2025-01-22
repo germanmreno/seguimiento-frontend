@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog"
 import { CheckCircle2 } from "lucide-react"
 import { memosService } from "@/services/memos.service"
+import { generateMemoExcel } from '@/utils/excelGenerator'
 
 const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
 const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'))
@@ -70,7 +71,7 @@ export const RegisterMemoPage = () => {
   const navigate = useNavigate()
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [newMemoId, setNewMemoId] = useState(null)
-
+  const [submitting, setSubmitting] = useState(false)
 
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [receptionFiles, setReceptionFiles] = useState([]);
@@ -114,6 +115,8 @@ export const RegisterMemoPage = () => {
 
   const onSubmit = async (data) => {
     try {
+      setSubmitting(true);
+
       const formData = new FormData();
 
       // Format the reception hour
@@ -152,15 +155,13 @@ export const RegisterMemoPage = () => {
       // Use the memoService instead of direct axios call
       const response = await memosService.createMemo(formData);
 
-      // Keep the same success handling
       setNewMemoId(response.id);
       setShowSuccessDialog(true);
-      toast.success('Memo registrado exitosamente');
-
     } catch (error) {
-      // Keep the same error handling
-      console.error('Error creating memo:', error);
-      toast.error(error.response?.data?.error || 'Error al registrar el memo');
+      console.error('Error:', error);
+      toast.error(error.message || 'Error al registrar el memo');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -515,8 +516,8 @@ export const RegisterMemoPage = () => {
 
                 <div className="space-y-4">
                   <FormField
-                    
-                    
+
+
                     control={form.control}
                     name="reception_images"
                     render={({ field }) => (
@@ -695,6 +696,8 @@ export const RegisterMemoPage = () => {
             </DialogTitle>
             <DialogDescription>
               El memo <span className="font-semibold">{newMemoId}</span> ha sido creado correctamente.
+              <br />
+              Se ha generado el archivo Excel con los datos del memo.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:justify-center">
@@ -712,8 +715,8 @@ export const RegisterMemoPage = () => {
               type="button"
               className="bg-primary-green"
               onClick={() => {
-                setShowSuccessDialog(false)
-                navigate("/memos")
+                setShowSuccessDialog(false);
+                navigate("/memos");
               }}
             >
               Ver Lista de Memos
