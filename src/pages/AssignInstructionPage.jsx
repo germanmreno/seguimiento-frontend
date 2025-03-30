@@ -78,12 +78,11 @@ export const AssignInstructionPage = () => {
   const handleAssignInstruction = async (data) => {
     if (isSubmitting) return;
 
+    const toastId = 'assignInstruction';
+
     try {
       setIsSubmitting(true);
-
-      toast.loading('Asignando instrucción...', {
-        id: 'assignInstruction',
-      });
+      toast.loading('Asignando instrucción...', { id: toastId });
 
       const finalInstruction = isOtherSelected ? data.customInstruction : data.instruction[0];
 
@@ -118,13 +117,16 @@ export const AssignInstructionPage = () => {
         {
           duration: 4000,
           className: "bg-white",
-          id: 'assignInstruction',
+          id: toastId,
         }
       );
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      navigate("/memos");
+      // Navigate after a short delay
+      setTimeout(() => {
+        navigate("/memos");
+      }, 1500);
     } catch (error) {
+      console.error('Error assigning instruction:', error);
       toast.error(
         <div className="flex flex-col gap-1">
           <span className="font-semibold">Error al asignar la instrucción</span>
@@ -132,17 +134,16 @@ export const AssignInstructionPage = () => {
         </div>,
         {
           duration: 4000,
-          id: 'assignInstruction',
+          id: toastId,
         }
       );
-      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleViewFile = (filePath) => {
-    window.open(`http://localhost:3005/${filePath}`, '_blank');
+    window.open(`http://172.16.2.51:3005/${filePath}`, '_blank');
   };
 
   const formatReceptionMethod = (method) => {
@@ -184,21 +185,21 @@ export const AssignInstructionPage = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto py-4 sm:py-6 px-2 sm:px-4">
         <Card className="shadow-lg">
-          <CardHeader className="bg-primary-blue text-white p-8">
-            <CardTitle className="text-2xl flex items-center justify-between">
+          <CardHeader className="bg-primary-blue text-white p-4 sm:p-6 md:p-8">
+            <CardTitle className="text-lg sm:text-xl md:text-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span>Asignar Instrucción - Memo {memo?.id}</span>
               <Badge
                 variant={memo?.urgency === 'URGENT' ? 'destructive' :
                   memo?.urgency === 'NORMAL' ? 'normal' :
                     'secondary'}
-                className="text-base px-4 py-1"
+                className="text-sm sm:text-base px-3 sm:px-4 py-1 w-fit"
               >
                 {memo?.urgency}
               </Badge>
             </CardTitle>
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-4">
               {memo?.offices?.map((officeRel) => (
                 <Badge
                   key={officeRel.office.id}
@@ -210,17 +211,18 @@ export const AssignInstructionPage = () => {
               ))}
             </div>
           </CardHeader>
-          <CardContent className="p-8">
-            <div className="space-y-8">
+
+          <CardContent className="p-4 sm:p-6 md:p-8">
+            <div className="space-y-6 sm:space-y-8">
               {/* Basic Memo Information */}
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
                     <h3 className="font-semibold text-gray-700 flex items-center gap-2 mb-2">
-                      <FileText className="h-5 w-5 text-primary-blue" />
+                      <FileText className="h-4 sm:h-5 w-4 sm:w-5 text-primary-blue" />
                       Asunto
                     </h3>
-                    <p className="text-lg">{memo?.name}</p>
+                    <p className="text-base sm:text-lg">{memo?.name}</p>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-700 flex items-center gap-2 mb-2">
@@ -276,11 +278,11 @@ export const AssignInstructionPage = () => {
               <Separator />
 
               {/* Files Section */}
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                 {/* Reception Images */}
                 <div>
-                  <h3 className="font-semibold text-gray-700 mb-3">Imágenes de Recepción:</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <h3 className="font-semibold text-gray-700 mb-2 sm:mb-3">Imágenes de Recepción:</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {memo?.reception_images.map((file, index) => (
                       <Dialog key={index}>
                         <DialogTrigger asChild>
@@ -296,7 +298,7 @@ export const AssignInstructionPage = () => {
                             ) : (
                               <>
                                 <img
-                                  src={`http://localhost:3005/${file.path}`}
+                                  src={`http://172.16.2.51:3005/${file.path}`}
                                   alt={`Recepción ${index + 1}`}
                                   className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-105"
                                 />
@@ -310,13 +312,13 @@ export const AssignInstructionPage = () => {
                         <DialogContent className="max-w-4xl">
                           {file.isPdf ? (
                             <iframe
-                              src={`http://localhost:3005/${file.path}`}
+                              src={`http://172.16.2.51:3005/${file.path}`}
                               className="w-full h-[80vh]"
                               title="PDF Viewer"
                             />
                           ) : (
                             <img
-                              src={`http://localhost:3005/${file.path}`}
+                              src={`http://172.16.2.51:3005/${file.path}`}
                               alt={`Recepción ${index + 1}`}
                               className="max-h-[80vh] w-auto mx-auto"
                             />
@@ -360,17 +362,17 @@ export const AssignInstructionPage = () => {
 
               {/* Instruction Selection */}
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleAssignInstruction)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(handleAssignInstruction)} className="space-y-4 sm:space-y-6">
                   <FormField
                     control={form.control}
                     name="instruction"
                     render={() => (
                       <FormItem>
-                        <FormLabel className="text-lg font-semibold text-gray-700">
+                        <FormLabel className="text-base sm:text-lg font-semibold text-gray-700">
                           SELECCIONAR INSTRUCCIÓN <span className="text-red-500 text-xl">*</span>
                         </FormLabel>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
-                          {[...instructionOptions, { id: 'OTHER', label: 'OTRA' }].map((option) => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-2">
+                          {[...instructionOptions].map((option) => (
                             <FormField
                               key={option.id}
                               control={form.control}

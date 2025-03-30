@@ -17,9 +17,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { useNavigate, useParams } from "react-router-dom"
 import { Textarea } from "@/components/ui/textarea"
 import { forumsService } from '@/services/forums.service';
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Loader } from "@/components/custom/Loader"
 import { useAuth } from "@/contexts/AuthContext"
+import { toast } from "sonner"
 
 const formSchema = z.object({
   title: z.string().min(5, "El título es requerido y debe poseer más de 5 carácteres"),
@@ -33,6 +34,14 @@ export const CreateForumPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useAuth()
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || !user) {
+      toast.error('Sesión no válida. Por favor, inicie sesión nuevamente.');
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,63 +51,76 @@ export const CreateForumPage = () => {
   })
 
   const onSubmit = async (data) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
+      if (!id) {
+        toast.error('ID del memo no encontrado');
+        return;
+      }
+
       const forumData = {
         memo_id: id,
         ...data,
         status: 'ACTIVE',
         createdAt: new Date().toISOString(),
-      }
+      };
 
-      const response = await forumsService.createForum(forumData, user)
+      const response = await forumsService.createForum(forumData, user);
 
-      if (response) {
-        navigate(`/forums/${response.id}`)
+      if (response?.id) {
+        toast.success('Foro creado exitosamente');
+        navigate(`/forums/${response.id}`);
+      } else {
+        throw new Error('No se recibió una respuesta válida del servidor');
       }
     } catch (error) {
-      console.error('Error creating forum:', error)
-      // Here you might want to add some error handling UI feedback
+      const errorMessage = error.response?.data?.message ||
+        error.message ||
+        'Error al crear el foro. Por favor, intente nuevamente.';
+      console.error('Error creating forum:', errorMessage);
+      toast.error(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
 
     <Layout>
       {isLoading && <Loader message={`Creando foro para el oficio ${id.toUpperCase()}...`} />}
-      <div className="container mx-auto py-10 divide-y flex justify-center">
-        <Card className="w-full max-w-4xl bg-white shadow-lg">
-          <CardHeader className="bg-[#24387d] rounded-t-lg">
-            <CardTitle className="text-sms text-left text-white primary-text">CREACIÓN DE FORO</CardTitle>
+      <div className="container mx-auto py-4 md:py-6 px-4 md:px-6">
+        <Card className="shadow-lg">
+          <CardHeader className="bg-primary-blue mb-4 text-white p-4 md:p-6">
+            <CardTitle className="text-xl md:text-2xl font-bold">Crear Nuevo Foro</CardTitle>
           </CardHeader>
-          <CardContent>
+
+          <CardContent className="p-4 md:p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="col-span-3">
-                    <FormField
-                      control={form.control}
-                      name="title"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="primary-text">TÍTULO <span className="text-red-500 text-xl">*</span></FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Título del foro"
-                              className="bg-gray-200"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Indique el título del foro.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
+                <div className="grid grid-cols-1 gap-4 md:gap-6">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="primary-text text-sm md:text-base">
+                          TÍTULO <span className="text-red-500 text-xl">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Título del foro"
+                            className="bg-gray-200"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription className="text-xs md:text-sm">
+                          Indique el título del foro.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="description"
@@ -122,11 +144,10 @@ export const CreateForumPage = () => {
                   />
                 </div>
 
-
-                <div className="space-y-4 flex justify-center">
+                <div className="flex justify-center pt-4">
                   <Button
                     type="submit"
-                    className="w-[400px] h-[45px] bg-primary-green primary-text text-lg"
+                    className="w-full md:w-[400px] h-[45px] bg-primary-green primary-text text-base md:text-lg"
                     disabled={isLoading}
                   >
                     {isLoading ? 'Creando...' : 'Crear'}

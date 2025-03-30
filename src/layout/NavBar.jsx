@@ -21,34 +21,36 @@ export const NavBar = () => {
   };
 
   return (
-    <nav className="navbar navbar-light navbar-gradient m-0 min-w-[400px] lg:w-[100%] h-auto xl:h-[125px] p-2 flex justify-center border-b-4 border-gray-950">
-      <div className="w-[80%] flex flex-col xl:flex-row justify-between items-center">
-        <div className="flex xl:ml-11">
-          <img src="/logo_gob.webp" alt="logo gobierno" className="h-[90px] mx-4" />
-          <div className="inline-block h-[90px] min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
-          <img src="/logo_cvm.webp" alt="logo cvm" className="h-[90px] mx-4" />
-          <div className="inline-block h-[90px] xl:hidden min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
-          <img src="/logo_batalla.webp" alt="logo cvm" className="h-[90px] mx-4 mr-11 xl:hidden" />
+    <nav className="navbar navbar-light navbar-gradient m-0 w-full min-h-[125px] p-2 flex justify-center border-b-4 border-gray-950">
+      <div className="w-full md:w-[90%] lg:w-[80%] flex flex-col xl:flex-row justify-between items-center px-2">
+        <div className="flex items-center justify-center flex-wrap gap-4">
+          <img src="/logo_gob.webp" alt="logo gobierno" className="h-[60px] sm:h-[90px]" />
+          <div className="hidden sm:inline-block h-[60px] sm:h-[90px] min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
+          <img src="/logo_cvm.webp" alt="logo cvm" className="h-[60px] sm:h-[90px]" />
+          <div className="hidden sm:inline-block h-[60px] sm:h-[90px] xl:hidden min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
+          <img src="/logo_batalla.webp" alt="logo cvm" className="h-[60px] sm:h-[90px] xl:hidden" />
         </div>
-        <div className="flex mt-8 xl:mt-0 text-center justify-center items-end text-white">
-          <div className="flex flex-col lg:flex-row text-center justify-center items-end text-white p-0">
-            <Button
-              variant="transparent"
-              className="flex justify-center items-center p-2"
-              onClick={() => handleNavigation("/home")}
-            >
-              <img src="/icon_home.webp" alt="registro" className="h-[50px]" />
-              <span className="primary-text">INICIO</span>
-            </Button>
-            <Button
-              variant="transparent"
-              className="flex justify-center items-center p-2"
-              onClick={handleLogout}
-            >
-              <img src="/icon_out.png" alt="registro" className="h-[50px]" />
-              <span className="primary-text">SALIR</span>
-            </Button>
-            <div className="hidden xl:flex flex-col items-end mr-4 ml-2">
+        <div className="flex mt-4 xl:mt-0 text-center justify-center items-end text-white">
+          <div className="flex flex-wrap justify-center gap-2 items-end text-white p-0">
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button
+                variant="transparent"
+                className="flex justify-center items-center p-2"
+                onClick={() => handleNavigation("/home")}
+              >
+                <img src="/icon_home.webp" alt="registro" className="h-[40px] sm:h-[50px]" />
+                <span className="primary-text text-sm sm:text-base">INICIO</span>
+              </Button>
+              <Button
+                variant="transparent"
+                className="flex justify-center items-center p-2"
+                onClick={handleLogout}
+              >
+                <img src="/icon_out.png" alt="registro" className="h-[40px] sm:h-[50px]" />
+                <span className="primary-text text-sm sm:text-base">SALIR</span>
+              </Button>
+            </div>
+            <div className="hidden sm:flex flex-col items-end mr-4 ml-2">
               <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/10">
                 <div className="flex flex-col items-end">
                   <p className="text-xs font-semibold primary-text">
@@ -68,7 +70,7 @@ export const NavBar = () => {
             </div>
             <NotificationBell />
             <div className="ml-4 h-[90px] hidden xl:inline-block min-h-[1em] w-0.5 self-stretch separator-gradient"></div>
-            <img src="/logo_batalla.png" alt="logo cvm" className="h-[90px] mx-4 xl:mr-11 hidden xl:block" />
+            <img src="/logo_batalla.webp" alt="logo cvm" className="h-[90px] mx-4 xl:mr-11 hidden xl:block" />
           </div>
         </div>
       </div>

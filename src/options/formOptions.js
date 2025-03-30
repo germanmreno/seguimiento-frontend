@@ -36,24 +36,25 @@ export const gerencyOptions = [
 ];
 
 export const instructionOptions = [
-  { id: 'PROCESAR', label: 'Procesar' },
-  { id: 'CHEQUEAR', label: 'Chequear e Informar' },
-  { id: 'COORDINAR', label: 'Coordinar e Informar' },
-  { id: 'VERIFICAR', label: 'Verificar e Informar' },
-  { id: 'EVALUAR', label: 'Evaluar y Recomendar' },
-  { id: 'PREPARAR', label: 'Preparar y presentar respuesta' },
-  { id: 'RESOLVER', label: 'Resolver e Informar' },
+  { id: 'ACUSE_RECIBO', label: 'ACUSE DE RECIBO' },
+  { id: 'PREPARAR_PTO_CTA', label: 'PREPARAR PUNTO DE CUENTA' },
+  { id: 'URGENTE', label: 'URGENTE' },
+  { id: 'INF_FIN_CONSG', label: 'INFORMACIÓN Y FINES CONSIGUIENTES' },
+  { id: 'EVALUAR', label: 'EVALUAR' },
+  { id: 'REVISAR', label: 'REVISAR' },
+  { id: 'DEVOLVER_DETALLES', label: 'DEVOLVER CON MÁS DETALLES' },
   {
-    id: 'SEGUIR',
-    label: 'Seguimiento',
+    id: 'TRAMITAR',
+    label: 'TRAMITAR',
   },
-  { id: 'COORDINAREU', label: 'Coordinar Reunión' },
-  { id: 'APOYAR', label: 'Apoyar' },
-  { id: 'DIFUNDIR', label: 'Difundir' },
-  { id: 'PRESENTE', label: 'Tener presente' },
-  { id: 'ESPERAR', label: 'Esperar' },
-  { id: 'ARCHIVAR', label: 'Archivar' },
-  { id: 'Other', label: 'OTRA' },
+  { id: 'ARCHIVAR', label: 'ARCHIVAR' },
+  { id: 'PROCEDER', label: 'PROCEDER' },
+  { id: 'APOYAR', label: 'APOYAR' },
+  { id: 'ASISTIR', label: 'ASISTIR' },
+  { id: 'ANALIZAR_RECOMENDAR', label: 'ANALIZAR Y RECOMENDAR' },
+  { id: 'PREPARAR_RESP', label: 'PREPARAR RESPUESTA' },
+  { id: 'EVAL_INF', label: 'EVALUAR E INFORMAR' },
+  { id: 'SEGUIMIENTO', label: 'SEGUIMIENTO' },
 ];
 
 export const responseOptions = [

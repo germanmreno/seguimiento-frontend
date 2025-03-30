@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useNavigate } from "react-router-dom"
-import { FilePlus } from "lucide-react"
+import { FilePlus, Send } from "lucide-react"
 
 export function DataTable({ columns = [], data = [], onRefresh }) {
 
@@ -119,11 +119,14 @@ export function DataTable({ columns = [], data = [], onRefresh }) {
     return user.role === 'ADMIN' || user.office_id === '110';
   };
 
+  const canSendMemos = () => {
+    return user.office_id === '101'; // VICEPRESIDENCIA
+  };
+
   return (
     <div>
-      <div className="flex items-center justify-between py-4 px-4 bg-gray-200/90 border-2 mt-[-5px] mb-[-1px] border-solid border-gray">
-        <div className="flex flex-row gap-2">
-          {/* Global Search */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center justify-between py-4 px-4 bg-gray-200/90 border-2 border-solid border-gray">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder="Buscar..."
             value={globalFilter}
@@ -131,17 +134,16 @@ export function DataTable({ columns = [], data = [], onRefresh }) {
             className="max-w-sm bg-white"
           />
 
-          {/* Status Filter */}
           <Select
             value={currentStatus}
             onValueChange={handleStatusChange}
           >
-            <SelectTrigger className="w-[180px] bg-white">
-              <SelectValue placeholder="Estado del Memo" />
+            <SelectTrigger className="w-full sm:w-[180px] bg-white">
+              <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Estado</SelectLabel>
+                <SelectLabel className="hidden sm:block">Estado</SelectLabel>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="PENDING">Pendientes</SelectItem>
                 <SelectItem value="COMPLETED">Completados</SelectItem>
@@ -150,41 +152,55 @@ export function DataTable({ columns = [], data = [], onRefresh }) {
             </SelectContent>
           </Select>
 
-          {/* Forum Status Filter */}
           <Select
             value={forumStatusFilter}
             onValueChange={handleForumStatusChange}
           >
-            <SelectTrigger className="w-[180px] bg-white">
-              <SelectValue placeholder="Estado del Foro" />
+            <SelectTrigger className="w-full sm:w-[180px] bg-white">
+              <SelectValue placeholder="Foro" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Estado del Foro</SelectLabel>
+                <SelectLabel className="hidden sm:block">Estado del Foro</SelectLabel>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="NO_FORUM">Sin Foro</SelectItem>
-                <SelectItem value="OPEN">Foros Abiertos</SelectItem>
-                <SelectItem value="CLOSED">Foros Cerrados</SelectItem>
+                <SelectItem value="OPEN">Abiertos</SelectItem>
+                <SelectItem value="CLOSED">Cerrados</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
         </div>
 
-        {canRegisterMemos() && (
-          <Button
-            variant="outline"
-            className="flex flex-row items-center justify-center h-30px p-4 py-6 rounded-full bg-primary-green transition-colors hover:bg-emerald-600/80"
-            onClick={() => navigate("/register-memo")}
-          >
-            <FilePlus className="text-white w-6" />
-            <span className="primary-text text-sm ml-2 text-slate-100">
-              Registrar nuevo oficio
-            </span>
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {canRegisterMemos() && (
+            <Button
+              variant="outline"
+              className="flex flex-row items-center justify-center h-30px p-4 py-6 rounded-full bg-primary-green transition-colors hover:bg-emerald-600/80 whitespace-nowrap"
+              onClick={() => navigate("/register-memo")}
+            >
+              <FilePlus className="text-white w-6" />
+              <span className="primary-text text-sm ml-2 text-slate-100 hidden sm:inline">
+                Registrar nuevo oficio
+              </span>
+            </Button>
+          )}
+
+          {canSendMemos() && (
+            <Button
+              variant="outline"
+              className="flex flex-row items-center justify-center h-30px p-4 py-6 rounded-full bg-blue-600 transition-colors hover:bg-blue-700/80 whitespace-nowrap"
+              onClick={() => navigate("/send-memo")}
+            >
+              <Send className="text-white w-6" />
+              <span className="primary-text text-sm ml-2 text-slate-100 hidden sm:inline">
+                Nuevo envío de oficio
+              </span>
+            </Button>
+          )}
+        </div>
       </div>
 
-      <div className="rounded-md border-solid border-2 border-gray">
+      <div className="rounded-md border-solid border-2 border-gray mt-4">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

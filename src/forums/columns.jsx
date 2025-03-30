@@ -1,7 +1,7 @@
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
-import { MoreHorizontal, ArrowUp, ArrowDown, Lock, Unlock, FileImage, Eye, FileText, MessageCircle, Check, RotateCcw, Circle, CheckCircle, Archive } from "lucide-react"
+import { MoreHorizontal, ArrowUp, ArrowDown, Lock, Unlock, FileImage, Eye, FileText, MessageCircle, Check, RotateCcw, Circle, CheckCircle, Archive, FileSpreadsheet } from "lucide-react"
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -10,8 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
@@ -125,6 +123,14 @@ const ActionCell = ({ row, navigate, toast, setRefresh }) => {
           <div className="flex items-center gap-2 text-blue-600">
             <Eye className="h-4 w-4" />
             <span>Ver Detalles</span>
+          </div>
+        </DropdownMenuItem>
+
+        {/* Add Excel action */}
+        <DropdownMenuItem onClick={() => navigate(`/memos/${id}/excel`)} className="hover:bg-green-50">
+          <div className="flex items-center gap-2 text-green-600">
+            <FileSpreadsheet className="h-4 w-4" />
+            <span>Generar Excel</span>
           </div>
         </DropdownMenuItem>
 
@@ -368,14 +374,25 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       );
     },
     cell: ({ row }) => {
-      const date = row.original.reception_date
+      const date = row.original.reception_date;
 
-      const formatDate = (date) => {
-        const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-        return new Date(date).toLocaleDateString('es-ES', options);
+      const formatDate = (dateString) => {
+        // Parse the date and adjust for timezone
+        const date = new Date(dateString);
+        // Add the timezone offset to get the correct date
+        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+
+        const options = {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          timeZone: 'UTC' // Force UTC to prevent timezone conversion
+        };
+
+        return date.toLocaleDateString('es-ES', options);
       };
 
-      return <div className="font-medium ">{formatDate(date)}</div>
+      return <div className="font-medium">{formatDate(date)}</div>;
     },
   },
   {
@@ -504,10 +521,10 @@ export const columns = ({ navigate, toast, setRefresh }) => [
       const handleViewImage = (image) => {
         console.log(image)
         if (image.isPdf) {
-          window.open(`http://localhost:3005/${image.path}`, '_blank');
+          window.open(`${image.path}`, '_blank');
           return;
         }
-        const imageUrl = `http://localhost:3005/${image.path}`;
+        const imageUrl = `${image.path}`;
         window.open(imageUrl, '_blank', 'width=800,height=600');
       };
 
@@ -553,7 +570,7 @@ export const columns = ({ navigate, toast, setRefresh }) => [
         // Format the path to ensure proper URL structure
         const formattedPath = file.path.replace(/\\/g, '/');
         // Add forward slash between base URL and path if needed
-        const fileUrl = `http://localhost:3005/${formattedPath.startsWith('/') ? formattedPath.slice(1) : formattedPath}`;
+        const fileUrl = `${formattedPath.startsWith('/') ? formattedPath.slice(1) : formattedPath}`;
 
         if (file.type === 'application/pdf') {
           window.open(fileUrl, '_blank');

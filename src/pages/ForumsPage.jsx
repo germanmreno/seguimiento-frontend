@@ -117,98 +117,97 @@ export const ForumsPage = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-4 md:py-6 px-4 md:px-6">
         {/* Filters Section */}
-        <div className="mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-primary-blue">Foros de Discusión</h2>
-              <Badge variant="outline" className="px-3 py-1">
-                <Filter className="w-4 h-4 mr-2" />
-                Filtros
-              </Badge>
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6 space-y-4 md:space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h2 className="text-xl md:text-2xl font-bold text-primary-blue">Foros de Discusión</h2>
+            <Badge variant="outline" className="px-3 py-1 self-start md:self-auto">
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros
+            </Badge>
+          </div>
+
+          {/* Filters Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {/* Search Filter */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Buscar</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Buscar por título, memo o instrucción..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* Search Filter */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Buscar</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Buscar por título, memo o instrucción..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+            {/* Status Filter */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Estado</Label>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="bg-gray-50 border-gray-200 focus:bg-white transition-colors">
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="OPEN">Abierto</SelectItem>
+                  <SelectItem value="CLOSED">Cerrado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Urgency Filter */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Urgencia</Label>
+              <Select value={selectedUrgency} onValueChange={setSelectedUrgency}>
+                <SelectTrigger className="bg-gray-50 border-gray-200 focus:bg-white transition-colors">
+                  <SelectValue placeholder="Todas las urgencias" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las urgencias</SelectItem>
+                  {urgencyOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Date Filter */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Fecha</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal bg-gray-50 border-gray-200 hover:bg-white transition-colors",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <Clock className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : "Seleccionar fecha"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    initialFocus
                   />
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Estado</Label>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className="bg-gray-50 border-gray-200 focus:bg-white transition-colors">
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="OPEN">Abierto</SelectItem>
-                    <SelectItem value="CLOSED">Cerrado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Urgency Filter */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Urgencia</Label>
-                <Select value={selectedUrgency} onValueChange={setSelectedUrgency}>
-                  <SelectTrigger className="bg-gray-50 border-gray-200 focus:bg-white transition-colors">
-                    <SelectValue placeholder="Todas las urgencias" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las urgencias</SelectItem>
-                    {urgencyOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Date Filter */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Fecha</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal bg-gray-50 border-gray-200 hover:bg-white transition-colors",
-                        !selectedDate && "text-muted-foreground"
-                      )}
-                    >
-                      <Clock className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, "PPP") : "Seleccionar fecha"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>
 
-        {/* Updated Forums List */}
-        <div className="space-y-4">
+        {/* Forums List */}
+        <div className="space-y-4 mt-4 md:mt-6">
           {currentForums.map((forum) => {
             const urgencyLevel = forum.memoDetails?.urgencyLevel || 'NORMAL';
             const urgencyVariant = urgencyOptions.find(
@@ -218,23 +217,17 @@ export const ForumsPage = () => {
             return (
               <Card
                 key={forum.id}
-                className={cn(
-                  "cursor-pointer hover:shadow-lg transition-shadow duration-200",
-                  "border-l-4",
-                  forum.status === 'CLOSED'
-                    ? "border-l-red-500"
-                    : "border-l-primary-blue"
-                )}
+                className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-l-4"
                 onClick={() => navigate(`/forums/${forum.id}`)}
               >
-                <div className="flex items-start p-4 gap-4">
+                <div className="flex flex-col md:flex-row items-start p-4 gap-4">
                   {/* Left side: Main info */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-primary-blue">
+                  <div className="flex-1 w-full">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+                      <h3 className="text-base md:text-lg font-semibold text-primary-blue">
                         {forum.title}
                       </h3>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Badge variant={urgencyVariant}>
                           {urgencyLevel}
                         </Badge>
@@ -264,7 +257,7 @@ export const ForumsPage = () => {
                   </div>
 
                   {/* Right side: Stats & Dates */}
-                  <div className="flex flex-col items-end gap-2 min-w-[200px]">
+                  <div className="flex flex-row md:flex-col items-start md:items-end gap-2 w-full md:w-auto md:min-w-[200px]">
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <MessageCircle className="h-4 w-4" />
                       <span>{forum.messageCount} mensajes</span>
@@ -287,7 +280,7 @@ export const ForumsPage = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-6">
+            <div className="flex justify-center items-center gap-1 md:gap-2 mt-6 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"

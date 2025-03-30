@@ -8,6 +8,13 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '@/services/auth.service';
 import { Loader } from '@/components/custom/Loader';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 
 export const LoginPage = () => {
   const { user, login } = useAuth();
@@ -16,6 +23,7 @@ export const LoginPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   if (user) {
     return <Navigate to="/home" replace />;
@@ -121,11 +129,36 @@ export const LoginPage = () => {
             </form>
 
             <a href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                setShowForgotModal(true);
+              }}
               className="mt-6 text-sm text-black underline font-bold hover:underline block text-center tracking-wider"
               tabIndex={isLoading ? -1 : 0}
             >
               ¿Olvidaste tu usuario?
             </a>
+
+            <Dialog open={showForgotModal} onOpenChange={setShowForgotModal}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="text-center text-xl font-bold primary-text">
+                    ¿Olvidaste tu usuario?
+                  </DialogTitle>
+                  <DialogDescription className="text-center pt-4">
+                    <p className="mb-4 text-base">
+                      Por favor, contacta a soporte:
+                    </p>
+                    <a
+                      href="mailto:oti@cvm.com.ve"
+                      className="text-lg font-semibold primary-text hover:underline"
+                    >
+                      oti@cvm.com.ve
+                    </a>
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>

@@ -26,42 +26,45 @@ export const Layout = ({ children }) => {
   };
 
   return (
-    <div className={`min-h-[100vh] w-full bg-cover bg-scroll bg-no-repeat bg-center`} style={{ backgroundImage: `url(/background_logo.webp)`, viewTransitionName: 'page' }} >
+    <div className="flex flex-col min-h-screen w-full bg-cover bg-scroll bg-no-repeat bg-center"
+      style={{ backgroundImage: `url(/background_logo.webp)`, viewTransitionName: 'page' }}>
       <NavBar />
-      {!isHomePage && (
-        <div className="container mx-auto pt-6">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{
-              duration: 0.3,
-              ease: "easeOut"
-            }}
-          >
-            <Button
-              variant="ghost"
-              className="group relative flex items-center gap-3 px-4 py-2 text-primary-blue 
-                         hover:text-primary-blue hover:bg-primary-blue/5 
-                         transition-all duration-300 ease-in-out
-                         shadow-sm hover:shadow-md
-                         border border-primary-blue/20 hover:border-primary-blue/40
-                         rounded-lg"
-              onClick={handleBack}
+      <div className="flex-1 flex flex-col">
+        {!isHomePage && (
+          <div className="container mx-auto pt-6">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                duration: 0.3,
+                ease: "easeOut"
+              }}
             >
-              <motion.span
-                className="inline-block"
-                initial={{ x: 0 }}
-                whileHover={{ x: -4 }}
-                transition={{ duration: 0.2 }}
+              <Button
+                variant="ghost"
+                className="group relative flex items-center gap-3 px-4 py-2 text-primary-blue 
+                           hover:text-primary-blue hover:bg-primary-blue/5 
+                           transition-all duration-300 ease-in-out
+                           shadow-sm hover:shadow-md
+                           border border-primary-blue/20 hover:border-primary-blue/40
+                           rounded-lg"
+                onClick={handleBack}
               >
-                <ArrowLeft className="h-5 w-5" />
-              </motion.span>
-              <span className="font-medium">Volver</span>
-            </Button>
-          </motion.div>
-        </div>
-      )}
-      {children}
+                <motion.span
+                  className="inline-block"
+                  initial={{ x: 0 }}
+                  whileHover={{ x: -4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </motion.span>
+                <span className="font-medium">Volver</span>
+              </Button>
+            </motion.div>
+          </div>
+        )}
+        {children}
+      </div>
       <Toaster />
       <Footer />
     </div>

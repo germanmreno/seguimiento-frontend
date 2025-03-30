@@ -88,7 +88,7 @@ export const MemoDetailsPage = () => {
     setFileLoading(true);
     try {
       const cleanPath = file.path.replace(/\\/g, '/').replace(/^\/+/, '');
-      const fileUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/${cleanPath}`;
+      const fileUrl = `${import.meta.env.VITE_API_URL || ''}/${cleanPath}`;
 
       if (file.type === 'application/pdf') {
         window.open(fileUrl, '_blank', 'noopener,noreferrer');
@@ -150,11 +150,13 @@ export const MemoDetailsPage = () => {
     );
   }
 
+  console.log(memo)
+
   return (
     <Layout>
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto py-4 md:py-6">
         <Card className="shadow-lg">
-          <CardHeader className="bg-primary-blue text-white p-8">
+          <CardHeader className="bg-primary-blue mb-4 text-white p-4 md:p-8">
             <CardTitle className="text-2xl flex items-center justify-between">
               <span>Detalles de Correspondencia - {memo?.id}</span>
               <Badge
@@ -177,34 +179,34 @@ export const MemoDetailsPage = () => {
             </div>
           </CardHeader>
 
-          <CardContent className="p-8">
+          <CardContent className="p-4 md:p-8">
             <div className="space-y-8">
               {/* Basic Information */}
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 {/* Left Column */}
                 <div className="space-y-6">
                   <div className="bg-white p-4 rounded-lg border shadow-sm">
-                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3">
-                      <FileText className="h-5 w-5" />
+                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3 text-sm md:text-base">
+                      <FileText className="h-4 w-4 md:h-5 md:w-5" />
                       Asunto
                     </h3>
-                    <p className="text-lg text-gray-700">{memo?.name}</p>
+                    <p className="text-base md:text-lg text-gray-700">{memo?.name}</p>
                   </div>
 
                   <div className="bg-white p-4 rounded-lg border shadow-sm">
-                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3">
-                      <User className="h-5 w-5" />
+                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3 text-sm md:text-base">
+                      <User className="h-4 w-4 md:h-5 md:w-5" />
                       Solicitante
                     </h3>
-                    <p className="text-lg text-gray-700">{memo?.applicant}</p>
+                    <p className="text-base md:text-lg text-gray-700">{memo?.applicant}</p>
                   </div>
 
                   <div className="bg-white p-4 rounded-lg border shadow-sm">
-                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3">
-                      <Calendar className="h-5 w-5" />
+                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3 text-sm md:text-base">
+                      <Calendar className="h-4 w-4 md:h-5 md:w-5" />
                       Fecha y Hora de Recepción
                     </h3>
-                    <p className="text-lg text-gray-700">
+                    <p className="text-base md:text-lg text-gray-700">
                       {formatDate(memo?.reception_date)} - {memo?.reception_hour}
                     </p>
                   </div>
@@ -213,8 +215,8 @@ export const MemoDetailsPage = () => {
                 {/* Right Column */}
                 <div className="space-y-6">
                   <div className="bg-white p-4 rounded-lg border shadow-sm">
-                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3">
-                      <MessageCircle className="h-5 w-5" />
+                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3 text-sm md:text-base">
+                      <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
                       Estado
                     </h3>
                     <Badge className={`${getStatusBadgeVariant(memo?.status)}`}>
@@ -223,16 +225,16 @@ export const MemoDetailsPage = () => {
                   </div>
 
                   <div className="bg-white p-4 rounded-lg border shadow-sm">
-                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3">
-                      <Eye className="h-5 w-5" />
+                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3 text-sm md:text-base">
+                      <Eye className="h-4 w-4 md:h-5 md:w-5" />
                       Método de Recepción
                     </h3>
-                    <p className="text-lg text-gray-700">{formatReceptionMethod(memo?.reception_method)}</p>
+                    <p className="text-base md:text-lg text-gray-700">{formatReceptionMethod(memo?.reception_method)}</p>
                   </div>
 
                   <div className="bg-white p-4 rounded-lg border shadow-sm">
-                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3">
-                      <MessageCircle className="h-5 w-5" />
+                    <h3 className="font-semibold text-primary-blue flex items-center gap-2 mb-3 text-sm md:text-base">
+                      <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
                       Requiere Respuesta
                     </h3>
                     <Badge variant={memo?.response_require === 'YES' ? 'default' : 'secondary'}>
@@ -253,13 +255,13 @@ export const MemoDetailsPage = () => {
                     Imágenes de Recepción
                   </h3>
                   {memo?.reception_images?.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4">
                       {memo.reception_images.map((file, index) => (
                         <Dialog key={index}>
                           <DialogTrigger asChild>
                             <Button
                               variant="outline"
-                              className="w-full h-24 aspect-square relative group overflow-hidden hover:border-primary-blue/50"
+                              className="w-full h-20 md:h-24 aspect-square relative group overflow-hidden"
                             >
                               {file.isPdf ? (
                                 <div className="flex flex-col items-center justify-center h-24 w-full bg-gray-50 group-hover:bg-gray-100">
@@ -271,7 +273,7 @@ export const MemoDetailsPage = () => {
                               ) : (
                                 <>
                                   <img
-                                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/${file.path.replace(/\\/g, '/').replace(/^\/+/, '')}`}
+                                    src={`${file.path.replace(/\\/g, '/').replace(/^\/+/, '')}`}
                                     alt={`Recepción ${index + 1}`}
                                     className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-105"
                                   />
@@ -282,16 +284,16 @@ export const MemoDetailsPage = () => {
                               )}
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-4xl">
+                          <DialogContent className="max-w-[95vw] md:max-w-4xl">
                             {file.isPdf ? (
                               <iframe
-                                src={`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/${file.path}`}
+                                src={`${import.meta.env.VITE_API_URL || ''}/${file.path}`}
                                 className="w-full h-[80vh]"
                                 title="PDF Viewer"
                               />
                             ) : (
                               <img
-                                src={`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/${file.path}`}
+                                src={`${file.path}`}
                                 alt={`Recepción ${index + 1}`}
                                 className="max-w-full max-h-[80vh] object-contain"
                               />
@@ -315,7 +317,7 @@ export const MemoDetailsPage = () => {
                     Archivos Adjuntos
                   </h3>
                   {memo?.attachment_files?.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                       {memo.attachment_files.map((file, index) => (
                         <Button
                           key={index}
